@@ -11,13 +11,18 @@ def login(username, password):
     return conn
 
 
-def create_new_db(db_name, conn):
-    if not database_exists('postgresql://postgres@localhost/user_db'):
+def create_new_db(db_name, conn, username, password):
+    if not database_exists(f'postgresql://{username}:{password}@localhost/{db_name}'):
         conn.execute(text('SELECT f_create_db(:param)'), param=db_name)
         messagebox.showinfo(title='Success', message='User database was successfuly created')
     else:
         messagebox.showerror(title='Error', message='User database already exists')
 
 
-def drop_db(db_name, conn):
-    conn.execute(text('SELECT f_drop_db(:param)'), param=db_name)
+def drop_db(db_name, username, password):
+    if database_exists(f'postgresql://{username}:{password}@localhost/{db_name}'):
+        drop_database(f'postgresql://{username}:{password}@localhost/{db_name}')
+        messagebox.showinfo(title='Success', message='User database was successfuly deleted')
+    else:
+        messagebox.showerror(title='Error', message='User database does not exist')
+
