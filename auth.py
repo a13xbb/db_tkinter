@@ -6,8 +6,10 @@ from sqlalchemy_utils.functions import database_exists, drop_database
 
 
 def login(username, password, dbname):
-    engine = create_engine(f"postgresql://{username}:{password}@localhost/{dbname}")
+    engine = create_engine(f"postgresql+psycopg2://{username}:{password}@localhost/{dbname}",
+                           echo='debug')
     conn = engine.connect()
+    # conn = psycopg2.connect(f"host='localhost' dbname={dbname} user={username} password={password}")
     return conn
 
 
@@ -28,6 +30,9 @@ def drop_db(db_name, conn, username, password):
         messagebox.showerror(title='Error', message='User database does not exist')
 
 
-def registrate_user(username, role):
-    pass
+def registrate_user(username, password, role, conn):
+    conn.execute(text('SELECT create_user(:param1, :param2, :param3);').bindparams(
+                 param1=username, param2=f'\'{password}\'', param3=role))
+    # conn.exec_driver_sql('SELECT create_user(%(param1)s, %(param2)s, %(param3)s);',
+    #                      dict(param1=username, param2=f'\'{password}\'', param3=role))
 

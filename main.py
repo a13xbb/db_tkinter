@@ -7,7 +7,7 @@ import tkinter as tk
 import logging
 
 if __name__ == "__main__":
-    # logging.basicConfig()
-    # logging.getLogger('sqlalchemy.dialects.postgresql').setLevel(logging.INFO)
+    logging.basicConfig()
+    logging.getLogger('sqlalchemy.dialects.postgresql').setLevel(logging.INFO)
     app = App()
     app.mainloop()

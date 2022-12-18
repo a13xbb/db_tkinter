@@ -1,5 +1,5 @@
 import tkinter as tk
-from auth import login, create_new_db, drop_db
+from auth import login, create_new_db, drop_db, registrate_user
 from tkinter import messagebox
 
 
@@ -135,15 +135,15 @@ class SignIn(tk.Frame):
         button_back.pack()
 
     def redirect(self, username, password):
-        try:
-            conn = login(username, password, 'user_db')
-            if username == 'admin':
-                admin_page = AdminPage(parent=self.parent, connection=conn, controller=self.controller,
-                                       username=username, password=password)
-                admin_page.place(relwidth=1, relheight=1)
-                admin_page.tkraise()
-        except Exception:
-            messagebox.showerror(title='Error', message='Wrong login or password')
+        # try:
+        conn = login(username, password, 'user_db')
+        if username == 'admin':
+            admin_page = AdminPage(parent=self.parent, connection=conn, controller=self.controller,
+                                   username=username, password=password)
+            admin_page.place(relwidth=1, relheight=1)
+            admin_page.tkraise()
+        # except Exception:
+        #     messagebox.showerror(title='Error', message='Wrong login or password')
 
 
 # admin can registrate new users with a certain roles
@@ -175,15 +175,19 @@ class AdminPage(tk.Frame):
             'accountant',
             'merchandiser'
         ]
-        default_var = tk.StringVar(self)
-        default_var.set(roles[0])
-        dropdown = tk.OptionMenu(self, default_var, *roles)
+        drop_var = tk.StringVar(self.controller)
+        drop_var.set(roles[0])
+        dropdown = tk.OptionMenu(self, drop_var, *roles)
         dropdown.config(font='Times 15')
 
         role_label.grid(row=3, column=0, pady=10, padx=10)
         dropdown.grid(row=3, column=1, pady=10, padx=10)
 
-        registrate_btn = tk.Button(self, text="Registrate new user", font='Times 15')
+        registrate_btn = tk.Button(self, text="Registrate new user", font='Times 15',
+                                   command=lambda: registrate_user(username_input.get(),
+                                                           password_input.get(),
+                                                           drop_var.get(),
+                                                           self.conn))
         registrate_btn.grid(row=4, column=0, columnspan=2)
 
         button_back = tk.Button(self, text="Back", font='Times 15',
