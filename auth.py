@@ -26,9 +26,20 @@ def create_new_db(db_name, engine, username, password):
 
 def drop_db(db_name, engine, username, password):
     if database_exists(f'postgresql://{username}:{password}@localhost/{db_name}'):
+        '''Подключаюсь к user_db, выбираю всех юзеров из таблицы и дропаю их,
+        надо переписать, используя хранимую процедуру'''
+        conn = create_engine(f'postgresql://{username}:{password}@localhost/user_db').connect()
+        res = conn.execute('SELECT username FROM users')
+        users = []
+        for row in res:
+            users.append(row[0])
+        for user in users:
+            conn.execute(f'DROP ROLE {user};')
+        conn.close()
+
         drop_database(f'postgresql://{username}:{password}@localhost/{db_name}')
         conn = engine.connect()
-        conn.execute(text('SELECT f_drop_roles()'))
+        conn.execute(text('SELECT f_drop_roles();'))
         conn.close()
         messagebox.showinfo(title='Success', message='User database was successfuly deleted')
     else:
