@@ -12,11 +12,3 @@ if __name__ == "__main__":
     app = App()
     app.mainloop()
 
-    # engine = create_engine(f"postgresql+psycopg2://admin:admin@localhost/user_db",
-    #                        echo='debug')
-    # conn = engine.connect()
-    # # conn.execute(text('SELECT create_user(:param1, :param2, :param3)').bindparams(
-    # #     param1='Ivan', param2='\'pswd\'', param3='accountant'))
-    # conn.execute('CREATE USER ivan WITH ROLE accountant LOGIN PASSWORD \'pswd\';')
-    # conn.close()
-

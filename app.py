@@ -1,5 +1,5 @@
 import tkinter as tk
-from auth import login, create_new_db, drop_db, registrate_user
+from auth import login, create_new_db, drop_db, registrate_user, check_role
 from tkinter import messagebox
 
 
@@ -76,8 +76,8 @@ class SuperUserLogin(tk.Frame):
 
     def redirect_to_superuser_page(self, username, password):
         try:
-            conn = login(username, password, 'super_db')
-            admin_page = SuperUserPage(parent=self.parent, connection=conn, controller=self.controller,
+            engine = login(username, password, 'super_db')
+            admin_page = SuperUserPage(parent=self.parent, engine=engine, controller=self.controller,
                                        username=username, password=password)
             admin_page.place(relwidth=1, relheight=1)
             admin_page.tkraise()
@@ -87,23 +87,23 @@ class SuperUserLogin(tk.Frame):
 
 class SuperUserPage(tk.Frame):
 
-    def __init__(self, parent, connection, controller, username, password):
+    def __init__(self, parent, engine, controller, username, password):
         tk.Frame.__init__(self, parent, bg='light blue')
         self.controller = controller
         self.parent = parent
-        self.conn = connection
+        self.engine = engine
         self.username = username
         self.password = password
         label = tk.Label(self, text="Superuser page", bg='light blue', font=25)
         label.pack(side="top", fill="x", pady=10)
 
         button_create = tk.Button(self, text="Create user database", font=25, bg='#2bbcd4',
-                                  command=lambda: create_new_db('user_db', self.conn,
+                                  command=lambda: create_new_db('user_db', self.engine,
                                                                 self.username, self.password))
         button_create.pack()
 
         button_delete = tk.Button(self, text="Delete user database", font=25, bg='#2bbcd4',
-                                  command=lambda: drop_db('user_db', self.conn, self.username, self.password))
+                                  command=lambda: drop_db('user_db', self.engine, self.username, self.password))
         button_delete.pack()
         button_back = tk.Button(self, text="Back", font=25,
                                 command=controller.show_start_page)
@@ -136,23 +136,34 @@ class SignIn(tk.Frame):
 
     def redirect(self, username, password):
         try:
-            conn = login(username, password, 'user_db')
+            engine = login(username, password, 'user_db')
             if username == 'admin':
-                admin_page = AdminPage(parent=self.parent, connection=conn, controller=self.controller,
+                admin_page = AdminPage(parent=self.parent, engine=engine, controller=self.controller,
                                        username=username, password=password)
                 admin_page.place(relwidth=1, relheight=1)
                 admin_page.tkraise()
+            elif check_role(username) == 'accountant':
+                acc_page = AccountantPage(parent=self.parent, engine=engine, controller=self.controller,
+                                       username=username, password=password)
+                acc_page.place(relwidth=1, relheight=1)
+                acc_page.tkraise()
+            elif check_role(username) == 'merchandiser':
+                merch_page = MerchandiserPage(parent=self.parent, engine=engine, controller=self.controller,
+                                       username=username, password=password)
+                merch_page.place(relwidth=1, relheight=1)
+                merch_page.tkraise()
+
         except Exception:
             messagebox.showerror(title='Error', message='Wrong login or password')
 
 
 # admin can registrate new users with a certain roles
 class AdminPage(tk.Frame):
-    def __init__(self, parent, connection, controller, username, password):
+    def __init__(self, parent, engine, controller, username, password):
         tk.Frame.__init__(self, parent, bg='light blue', padx=180)
         self.controller = controller
         self.parent = parent
-        self.conn = connection
+        self.engine = engine
         self.username = username
         self.password = password
         label = tk.Label(self, text="Admin page", bg='light blue', font='Times 25', pady=40)
@@ -187,7 +198,7 @@ class AdminPage(tk.Frame):
                                    command=lambda: registrate_user(username_input.get(),
                                                                    password_input.get(),
                                                                    drop_var.get(),
-                                                                   self.conn))
+                                                                   self.engine))
         registrate_btn.grid(row=4, column=0, columnspan=2)
 
         button_back = tk.Button(self, text="Back", font='Times 15',
@@ -195,6 +206,28 @@ class AdminPage(tk.Frame):
         button_back.place(anchor='nw', y=40)
 
 
+class AccountantPage(tk.Frame):
+    def __init__(self, parent, engine, controller, username, password):
+        tk.Frame.__init__(self, parent, bg='light blue', padx=180)
+        self.controller = controller
+        self.parent = parent
+        self.engine = engine
+        self.username = username
+        self.password = password
+        label = tk.Label(self, text="Accountant page", bg='light blue', font='Times 25', pady=40)
+        label.grid(row=0, column=0, columnspan=2)
+
+
+class MerchandiserPage(tk.Frame):
+    def __init__(self, parent, engine, controller, username, password):
+        tk.Frame.__init__(self, parent, bg='light blue', padx=180)
+        self.controller = controller
+        self.parent = parent
+        self.engine = engine
+        self.username = username
+        self.password = password
+        label = tk.Label(self, text="Merchandiser page", bg='light blue', font='Times 25', pady=40)
+        label.grid(row=0, column=0, columnspan=2)
     # def go_back(self):
     #     print('in here')
     #     sp = StartPage(parent=self, controller=self.controller)
