@@ -135,15 +135,15 @@ class SignIn(tk.Frame):
         button_back.pack()
 
     def redirect(self, username, password):
-        # try:
-        conn = login(username, password, 'user_db')
-        if username == 'admin':
-            admin_page = AdminPage(parent=self.parent, connection=conn, controller=self.controller,
-                                   username=username, password=password)
-            admin_page.place(relwidth=1, relheight=1)
-            admin_page.tkraise()
-        # except Exception:
-        #     messagebox.showerror(title='Error', message='Wrong login or password')
+        try:
+            conn = login(username, password, 'user_db')
+            if username == 'admin':
+                admin_page = AdminPage(parent=self.parent, connection=conn, controller=self.controller,
+                                       username=username, password=password)
+                admin_page.place(relwidth=1, relheight=1)
+                admin_page.tkraise()
+        except Exception:
+            messagebox.showerror(title='Error', message='Wrong login or password')
 
 
 # admin can registrate new users with a certain roles
@@ -185,9 +185,9 @@ class AdminPage(tk.Frame):
 
         registrate_btn = tk.Button(self, text="Registrate new user", font='Times 15',
                                    command=lambda: registrate_user(username_input.get(),
-                                                           password_input.get(),
-                                                           drop_var.get(),
-                                                           self.conn))
+                                                                   password_input.get(),
+                                                                   drop_var.get(),
+                                                                   self.conn))
         registrate_btn.grid(row=4, column=0, columnspan=2)
 
         button_back = tk.Button(self, text="Back", font='Times 15',

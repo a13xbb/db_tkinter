@@ -31,8 +31,11 @@ def drop_db(db_name, conn, username, password):
 
 
 def registrate_user(username, password, role, conn):
-    conn.execute(text('SELECT create_user(:param1, :param2, :param3);').bindparams(
-                 param1=username, param2=f'\'{password}\'', param3=role))
+    # conn.execute(text('SELECT create_user(:param1, :param2, :param3);').bindparams(
+    #              param1=username, param2=f'\'{password}\'', param3=role))
+    conn.execute(f'CREATE USER {username} WITH ROLE {role} LOGIN PASSWORD \'{password}\';')
+    conn.execute(f'INSERT INTO users (username, role) VALUES (\'{username}\', \'{role}\');')
+
     # conn.exec_driver_sql('SELECT create_user(%(param1)s, %(param2)s, %(param3)s);',
     #                      dict(param1=username, param2=f'\'{password}\'', param3=role))
 
