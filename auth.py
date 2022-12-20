@@ -74,7 +74,7 @@ def is_in_storage(item, quantity, engine) -> bool:
     return res
 
 
-def is_enough_items_for_order(items: str, engine) -> bool:
+def str_to_list(items: str) -> dict:
     items = items.split(',')
     items_dct = {}
     for i in range(len(items)):
@@ -90,6 +90,13 @@ def is_enough_items_for_order(items: str, engine) -> bool:
         if item not in items_dct:
             items_dct[item] = items.count(item)
 
+    return items_dct
+
+
+def is_enough_items_for_order(items: str, engine) -> bool:
+
+    items_dct = str_to_list(items)
+
     for item, cnt in items_dct.items():
         if not is_in_storage(item, cnt, engine):
             return False
@@ -97,4 +104,31 @@ def is_enough_items_for_order(items: str, engine) -> bool:
     return True
 
 
+def get_price(item_name, engine):
+    conn = engine.connect()
+    res = tuple(conn.execute(text('SELECT get_price(:item_name)'), item_name=f'\'{item_name}\''))
+    conn.close()
+    return res[0][0]
+
+
+def get_weight(item_name, engine):
+    conn = engine.connect()
+    res = tuple(conn.execute(text('SELECT get_weight(:item_name)'), item_name=f'\'{item_name}\''))
+    conn.close()
+    return res[0][0]
+
+
+def take_from_storage(item_name, quantity, engine):
+    conn = engine.connect()
+    conn.execute(f'UPDATE item SET quantity=quantity-{quantity} WHERE name=\'{item_name}\';')
+    conn.close()
+
+
 def create_order(items: str, engine):
+    """функция добавления заказа, нужно дописать"""
+    items_dct = str_to_list(items)
+
+    weight = 0
+    price = 0
+    for item, qnt in items_dct:
+        pass
