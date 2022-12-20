@@ -1,5 +1,5 @@
 import tkinter as tk
-from auth import login, create_new_db, drop_db, registrate_user, check_role
+from auth import login, create_new_db, drop_db, registrate_user, check_role, is_enough_items_for_order
 from tkinter import messagebox
 
 
@@ -233,14 +233,19 @@ class MerchandiserPage(tk.Frame):
                                         command=lambda: self.redirect_ord())
         add_order_goto_button.grid(row=4, column=0, columnspan=2)
 
+        button_back = tk.Button(self, text="Back", font='Times 15',
+                                command=controller.show_start_page)
+        button_back.grid(row=5, column=0, columnspan=2)
+
     def redirect_ord(self):
         disp_page = AddOrder(parent=self, engine=self.engine, controller=self.controller)
         disp_page.place(relwidth=1, relheight=1)
         disp_page.tkraise()
-        
+
+
 class AddOrder(tk.Frame):
     def __init__(self, parent: MerchandiserPage, engine, controller: App):
-        tk.Frame.__init__(self, parent, bg='light blue', padx=180)
+        tk.Frame.__init__(self, parent, bg='light blue')
         self.parent = parent
         self.engine = engine
         create_order_label = tk.Label(self, text="Add order", bg='light blue', font='Times 15', pady=30)
@@ -250,14 +255,19 @@ class AddOrder(tk.Frame):
         buyername_input = tk.Entry(self, font='Times 15')
         status_label = tk.Label(self, bg='light blue', font='Times 15', text='Payment status of \nthe order inplace', pady=10, padx=10)
         status_input = tk.Entry(self, font='Times 15')
+        items_label = tk.Label(self, bg='light blue', font='Times 15', text='Items (coma-separated)',
+                                pady=10, padx=10)
+        items_input = tk.Text(self, height=7, width=29, font='Times 15', wrap='word')
 
         buyername_label.grid(row=2, column=0)
         buyername_input.grid(row=2, column=1, pady=10, padx=10)
         status_label.grid(row=3, column=0)
         status_input.grid(row=3, column=1, pady=10, padx=10)
-        registrate_btn = tk.Button(self, text="Add new order", font='Times 15',
-                                        command=lambda: ())
-        registrate_btn.grid(row=4, column=0, columnspan=2)
+        items_label.grid(row=4, column=0, columnspan=2)
+        items_input.grid(row=5, column=0, columnspan=2)
+        add_order_btn = tk.Button(self, text="Add new order", font='Times 15',
+                                   command=lambda: print(is_enough_items_for_order(items_input.get('1.0', 'end')[:-1], self.engine)))
+        add_order_btn.grid(row=6, column=0, columnspan=2, pady=20)
 
 
         button_back = tk.Button(self, text="Back", font='Times 15',
@@ -268,3 +278,11 @@ class AddOrder(tk.Frame):
 
         self.parent.tkraise()
         self.destroy()
+
+
+#TODO:
+#   1) идем в айтемы и проверяем, есть ли на складе все необходимые айтемы
+#   2) если нет, то дропаем ошибку
+#   3) если да, то высчитываем вес заказа, его цену (sum(items) + tanh(С * sum(weights) - 1) + 1)
+#   4) добавляем заказ в таблицу purchase
+#   5) добавляем в таблицу purchase_item order_id:item
