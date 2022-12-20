@@ -228,9 +228,43 @@ class MerchandiserPage(tk.Frame):
         self.password = password
         label = tk.Label(self, text="Merchandiser page", bg='light blue', font='Times 25', pady=40)
         label.grid(row=0, column=0, columnspan=2)
-    # def go_back(self):
-    #     print('in here')
-    #     sp = StartPage(parent=self, controller=self.controller)
-    #     sp.place(relwidth=1, relheight=1)
-    #     sp.tkraise()
-    #     print('in here 2')
+
+        add_order_goto_button = tk.Button(self, text="Manage orders", font='Times 15',
+                                        command=lambda: self.redirect_ord())
+        add_order_goto_button.grid(row=4, column=0, columnspan=2)
+
+    def redirect_ord(self):
+        disp_page = AddOrder(parent=self, engine=self.engine, controller=self.controller)
+        disp_page.place(relwidth=1, relheight=1)
+        disp_page.tkraise()
+        
+class AddOrder(tk.Frame):
+    def __init__(self, parent: MerchandiserPage, engine, controller: App):
+        tk.Frame.__init__(self, parent, bg='light blue', padx=180)
+        self.parent = parent
+        self.engine = engine
+        create_order_label = tk.Label(self, text="Add order", bg='light blue', font='Times 15', pady=30)
+        create_order_label.grid(row=1,column=0, columnspan=2)
+
+        buyername_label = tk.Label(self, bg='light blue', font='Times 15', text='Buyer\'s name', pady=10, padx=10)
+        buyername_input = tk.Entry(self, font='Times 15')
+        status_label = tk.Label(self, bg='light blue', font='Times 15', text='Payment status of \nthe order inplace', pady=10, padx=10)
+        status_input = tk.Entry(self, font='Times 15')
+
+        buyername_label.grid(row=2, column=0)
+        buyername_input.grid(row=2, column=1, pady=10, padx=10)
+        status_label.grid(row=3, column=0)
+        status_input.grid(row=3, column=1, pady=10, padx=10)
+        registrate_btn = tk.Button(self, text="Add new order", font='Times 15',
+                                        command=lambda: ())
+        registrate_btn.grid(row=4, column=0, columnspan=2)
+
+
+        button_back = tk.Button(self, text="Back", font='Times 15',
+                        command=self.goback)
+        button_back.place(anchor='nw', y=40)
+
+    def goback(self):
+
+        self.parent.tkraise()
+        self.destroy()

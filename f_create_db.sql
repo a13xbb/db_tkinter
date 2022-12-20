@@ -11,10 +11,10 @@ IF EXISTS (SELECT 1 FROM pg_database WHERE datname = dbname) THEN
 ELSE
    
 
-PERFORM dblink_exec('dbname=' || current_database() || ' user=postgres' || ' password=1989'   -- current db
+PERFORM dblink_exec('dbname=' || current_database() || ' user=postgres' || ' password=zhvzhvzhv'   -- current db
                      , 'CREATE DATABASE ' || quote_ident(dbname));
 					 
-	PERFORM dblink_connect('dbname=user_db user=postgres password=1989');
+	PERFORM dblink_connect('dbname=user_db user=postgres password=zhvzhvzhv');
 	
 	PERFORM dblink_exec(
          'CREATE TABLE item (
