@@ -274,6 +274,12 @@ class ManageOrders(tk.Frame):
         def get_order():
             if not is_enough_items_for_order(items_input.get('1.0', 'end')[:-1], self.engine):
                 messagebox.showerror(title='Error', message='Not enough items')
+            elif buyername_input.get() == '':
+                messagebox.showerror(title='Error', message='Enter buyer\'s name')
+            elif status_input.get() == '':
+                messagebox.showerror(title='Error', message='Enter status')
+            elif items_input.get('1.0', 'end')[:-1] == '':
+                messagebox.showerror(title='Error', message='Enter 1 item at least')
             else:
                 return None # lambda call to DB
 
