@@ -1,7 +1,7 @@
 CREATE EXTENSION dblink;
 
 
-CREATE OR REPLACE FUNCTION f_drop_roles(dbname text)
+CREATE OR REPLACE FUNCTION f_drop_roles()
   RETURNS void AS
 $func$
 BEGIN
