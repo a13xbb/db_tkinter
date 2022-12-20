@@ -55,9 +55,11 @@ ELSE
 
 	PERFORM dblink_exec(
 		'GRANT USAGE ON SCHEMA public TO merchandiser;
+		 GRANT USAGE ON SCHEMA public TO accountant;
 		 GRANT ALL PRIVILEGES ON TABLE item TO merchandiser;
 		 GRANT ALL PRIVILEGES ON TABLE purchase TO merchandiser;
-		 GRANT ALL PRIVILEGES ON TABLE purchase_item TO merchandiser;');
+		 GRANT ALL PRIVILEGES ON TABLE purchase_item TO merchandiser;
+		 GRANT ALL PRIVILEGES ON TABLE transaction TO accountant');
 
 -- 	PERFORM dblink_exec(
 --          'EXECUTE ''GRANT INSERT ON users TO admin;''');
