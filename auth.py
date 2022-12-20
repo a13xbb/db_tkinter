@@ -95,3 +95,6 @@ def is_enough_items_for_order(items: str, engine) -> bool:
             return False
 
     return True
+
+
+def create_order(items: str, engine):

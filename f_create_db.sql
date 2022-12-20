@@ -89,6 +89,57 @@ ELSE
 		$func$ LANGUAGE plpgsql;'
 	);
 
+	PERFORM dblink_exec(
+		'CREATE OR REPLACE FUNCTION get_price(my_item text)
+  			RETURNS SETOF numeric(10) AS
+		$func$
+		BEGIN
+
+			RETURN QUERY
+			EXECUTE ''SELECT price FROM item WHERE name='' || my_item;
+
+		END;
+		$func$ LANGUAGE plpgsql;'
+	);
+
+	PERFORM dblink_exec(
+		'CREATE OR REPLACE FUNCTION get_weight(my_item text)
+  			RETURNS SETOF numeric(10) AS
+		$func$
+		BEGIN
+
+			RETURN QUERY
+			EXECUTE ''SELECT weight FROM item WHERE name='' || my_item;
+
+		END;
+		$func$ LANGUAGE plpgsql;'
+	);
+
+	PERFORM dblink_exec(
+		'CREATE OR REPLACE FUNCTION create_order(my_buyer_name text, my_weight numeric(10), my_price numeric(10), status text)
+  			RETURNS void AS
+		$func$
+		BEGIN
+
+			EXECUTE ''INSERT INTO purchase(buyer_name, weight, price, status) VALUES('' || my_buyer_name || '', '' || my_weight || '', '' || my_price || '', '' || status || '')'';
+
+		END;
+		$func$ LANGUAGE plpgsql;'
+	);
+
+	PERFORM dblink_exec(
+		'CREATE OR REPLACE FUNCTION take_from_storage(item_name text, my_quantity integer)
+  			RETURNS void AS
+		$func$
+		BEGIN
+
+			EXECUTE ''UPDATE item
+					  SET quantity=quantity-'' || my_quantity || '' WHERE name='' || item_name;
+
+		END;
+		$func$ LANGUAGE plpgsql;'
+	);
+
 
 END IF;
 
