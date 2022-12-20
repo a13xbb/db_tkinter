@@ -238,12 +238,24 @@ class MerchandiserPage(tk.Frame):
         button_back.grid(row=5, column=0, columnspan=2)
 
     def redirect_ord(self):
-        disp_page = AddOrder(parent=self, engine=self.engine, controller=self.controller)
+        disp_page = ManageOrders(parent=self, engine=self.engine, controller=self.controller)
         disp_page.place(relwidth=1, relheight=1)
         disp_page.tkraise()
 
 
-class AddOrder(tk.Frame):
+class ManageItems(tk.Frame):
+    def __init__(self, parent: MerchandiserPage, engine, controller: App):
+        tk.Frame.__init__(self, parent, bg='light blue')
+
+    # Add items [already registered] (name, quantity) if not exists - error; 
+    # Register Item [new] (name, weight, price) if exists - upd or add; price <=0, weight <=0
+
+    def goback(self):
+
+        self.parent.tkraise()
+        self.destroy()
+
+class ManageOrders(tk.Frame):
     def __init__(self, parent: MerchandiserPage, engine, controller: App):
         tk.Frame.__init__(self, parent, bg='light blue')
         self.parent = parent
@@ -259,6 +271,12 @@ class AddOrder(tk.Frame):
                                 pady=10, padx=10)
         items_input = tk.Text(self, height=7, width=29, font='Times 15', wrap='word')
 
+        def get_order():
+            if not is_enough_items_for_order(items_input.get('1.0', 'end')[:-1], self.engine):
+                messagebox.showerror(title='Error', message='Not enough items')
+            else:
+                return None # lambda call to DB
+
         buyername_label.grid(row=2, column=0)
         buyername_input.grid(row=2, column=1, pady=10, padx=10)
         status_label.grid(row=3, column=0)
@@ -266,7 +284,7 @@ class AddOrder(tk.Frame):
         items_label.grid(row=4, column=0, columnspan=2)
         items_input.grid(row=5, column=0, columnspan=2)
         add_order_btn = tk.Button(self, text="Add new order", font='Times 15',
-                                   command=lambda: print(is_enough_items_for_order(items_input.get('1.0', 'end')[:-1], self.engine)))
+                                   command=get_order)
         add_order_btn.grid(row=6, column=0, columnspan=2, pady=20)
 
 

@@ -56,9 +56,6 @@ def registrate_user(username, password, role, engine):
                  f'INSERT INTO users (username, role) VALUES (\'{username}\', \'{role}\');')
     conn.close()
 
-    # conn.exec_driver_sql('SELECT create_user(%(param1)s, %(param2)s, %(param3)s);',
-    #                      dict(param1=username, param2=f'\'{password}\'', param3=role))
-
 
 def check_role(username):
     engine = login('admin', 'admin', 'user_db')
