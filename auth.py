@@ -53,6 +53,7 @@ def registrate_user(username, password, role, engine):
     conn = engine.connect()
     conn.execute(f'CREATE USER {username} LOGIN PASSWORD \'{password}\';'
                  f'GRANT {role} TO {username};'
+                 f'ALTER ROLE {username} INHERIT;'
                  f'INSERT INTO users (username, role) VALUES (\'{username}\', \'{role}\');')
     conn.close()
 
