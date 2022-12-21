@@ -18,7 +18,7 @@ ELSE
 	PERFORM dblink_exec(
          'CREATE TABLE item (
 			id serial PRIMARY KEY,
-			name text NOT NULL,
+			name text UNIQUE NOT NULL,
 			weight numeric(10),
 			quantity integer CHECK (quantity>=0),
 			price numeric(10) NOT NULL);');
@@ -56,10 +56,12 @@ ELSE
 	PERFORM dblink_exec(
 		'GRANT USAGE ON SCHEMA public TO merchandiser;
 		 GRANT USAGE ON SCHEMA public TO accountant;
+		 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO merchandiser;
+		 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO accountant;
 		 GRANT ALL PRIVILEGES ON TABLE item TO merchandiser;
 		 GRANT ALL PRIVILEGES ON TABLE purchase TO merchandiser;
 		 GRANT ALL PRIVILEGES ON TABLE purchase_item TO merchandiser;
-		 GRANT ALL PRIVILEGES ON TABLE transaction TO accountant');
+		 GRANT ALL PRIVILEGES ON TABLE transaction TO accountant;');
 
 -- 	PERFORM dblink_exec(
 --          'EXECUTE ''GRANT INSERT ON users TO admin;''');

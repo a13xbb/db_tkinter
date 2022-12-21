@@ -124,6 +124,7 @@ def take_from_storage(item_name, quantity, engine):
     conn.execute(f'UPDATE item SET quantity=quantity-{quantity} WHERE name=\'{item_name}\';')
     conn.close()
 
+
 def create_order(buyer_name, status, items: str, engine):
     items_dct = str_to_list(items)
 
