@@ -139,5 +139,7 @@ def create_order(buyer_name, status, items: str, engine):
     price = ceil(float(price) + 5 * tanh(weight/20 - 1) + 5)
 
     conn = engine.connect()
+    # conn.execute(text('SELECT create_order(:buyer_name, :weight, :price, :status);'),
+    #              buyer_name=f'\'buyer_name\'', weight=float(weight), price=price, status=f'\'status\'')
     conn.execute(f'INSERT INTO purchase(buyer_name, weight, price, status) VALUES(\'{buyer_name}\', {weight}, {price} , \'{status}\');')
     conn.close()

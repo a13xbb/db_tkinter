@@ -11,7 +11,6 @@ if __name__ == "__main__":
     logging.getLogger('sqlalchemy.dialects.postgresql').setLevel(logging.INFO)
     app = App()
     app.mainloop()
-
     # engine = create_engine(f"postgresql+psycopg2://qeq:111@localhost/user_db")
     # conn = engine.connect()
     # conn.execute('INSERT INTO item(name, weight, quantity, price) VALUES(\'mouse\', 22, 44, 55);')

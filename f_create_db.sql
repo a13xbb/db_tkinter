@@ -39,8 +39,10 @@ ELSE
 
 	PERFORM dblink_exec(
          'CREATE TABLE purchase_item (
-			order_id serial PRIMARY KEY,
-			item_id serial REFERENCES item(id));');
+			purchase_id integer PRIMARY KEY,
+			item_name text REFERENCES item(name),
+            quantity integer CHECK(quantity>0);');
+
 
 	PERFORM dblink_exec(
          'CREATE TABLE users (
