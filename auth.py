@@ -79,10 +79,9 @@ def str_to_dict(items: str) -> dict:
     items = items.split(',')
     items_dct = {}
     for i in range(len(items)):
-        while ' ' in items[i] and items[i][0] == ' ':
-            items[i] = items[i][1:]
-        while ' ' in items[i] and items[i][-1] == ' ':
-            items[i] = items[i][:-1]
+        items[i] = items[i].strip()
+        while '\n' in items[i]:
+            items[i] = items[i].replace('\n', '')
 
         if items[i] == '':
             items.pop(i)
@@ -90,6 +89,8 @@ def str_to_dict(items: str) -> dict:
     for item in items:
         if item not in items_dct:
             items_dct[item] = items.count(item)
+
+    print(items_dct)
 
     return items_dct
 
@@ -164,5 +165,26 @@ def create_order(buyer_name, status, items: str, engine):
     conn.execute(f'INSERT INTO purchase(buyer_name, weight, price, status) VALUES(\'{buyer_name}\', {weight}, {price} , \'{status}\');')
 
     conn.close()
+
+
+def search_purchase_by_id(_id: int, engine):
+    conn = engine.connect()
+    res = tuple(conn.execute(text('SELECT search_purchase_by_id(:id)'), id=_id))
+    conn.close()
+    return res
+
+
+def search_purchase_by_name(name:str, engine):
+    conn = engine.connect()
+    res = tuple(conn.execute(text('SELECT search_purchase_by_name(:name)'), name=name))
+    conn.close()
+    return res
+
+
+def search_purchase_by_status(status:str, engine):
+    conn = engine.connect()
+    res = tuple(conn.execute(text('SELECT search_purchase_by_status(:status)'), status=status))
+    conn.close()
+    return res
 
 

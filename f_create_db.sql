@@ -25,24 +25,23 @@ ELSE
 
 	PERFORM dblink_exec(
          'CREATE TABLE transaction (
-			current_balance numeric(10) PRIMARY KEY,
-			cost numeric(10) NOT NULL,
+			current_balance numeric(10),
+			cost numeric(10) CHECK(cost>0),
 			counteragent_name text NOT NULL);');
 
 	PERFORM dblink_exec(
          'CREATE TABLE purchase (
 			id serial PRIMARY KEY,
 			buyer_name text NOT NULL,
-			weight numeric(10),
-			price numeric(10) NOT NULL,
+			weight numeric(10) CHECK (weight>=0),
+			price numeric(10) CHECK (price>0),
 			status text);');
 
 	PERFORM dblink_exec(
          'CREATE TABLE purchase_item (
-			purchase_id integer PRIMARY KEY,
+			purchase_id integer,
 			item_name text REFERENCES item(name),
-            quantity integer CHECK(quantity>0);');
-
+            quantity integer CHECK (quantity>0));');
 
 	PERFORM dblink_exec(
          'CREATE TABLE users (
@@ -144,6 +143,136 @@ ELSE
 		$func$ LANGUAGE plpgsql;'
 	);
 
+	PERFORM dblink_exec(
+		'CREATE OR REPLACE FUNCTION get_last_order_id()
+  			RETURNS SETOF bigint AS
+		$func$
+		BEGIN
+
+			RETURN QUERY
+			EXECUTE ''SELECT count(*) FROM purchase'';
+
+		END;
+		$func$ LANGUAGE plpgsql;'
+	);
+
+	PERFORM dblink_exec(
+		'CREATE OR REPLACE FUNCTION add_item_to_order(order_id integer, item_name text, my_quantity integer)
+  			RETURNS void AS
+		$func$
+		BEGIN
+
+			EXECUTE ''INSERT INTO purchase_item(purchase_id, item_name, quantity) VALUES('' || order_id || '', '' || item_name || '', '' || my_quantity || '')'';
+
+		END;
+		$func$ LANGUAGE plpgsql;'
+	);
+
+	PERFORM dblink_exec(
+		'CREATE OR REPLACE FUNCTION search_purchase_by_name(name text)
+  		 RETURNS TABLE(id integer,
+						buyer_name text,
+						weight numeric(10),
+						price numeric(10),
+						status text)
+  		 AS
+		 $func$
+		 BEGIN
+
+		    RETURN QUERY
+		 	SELECT p.id, p.buyer_name, p.weight, p.price, p.status FROM purchase AS p WHERE p.buyer_name=name;
+
+		 END;
+		 $func$ LANGUAGE plpgsql;'
+	);
+
+	PERFORM dblink_exec(
+		'CREATE OR REPLACE FUNCTION search_purchase_by_id(my_id integer)
+  		 RETURNS TABLE(id integer,
+						buyer_name text,
+						weight numeric(10),
+						price numeric(10),
+						status text)
+  		 AS
+		 $func$
+		 BEGIN
+
+		    RETURN QUERY
+		 	SELECT p.id, p.buyer_name, p.weight, p.price, p.status FROM purchase AS p WHERE p.id=my_id;
+
+		 END;
+		 $func$ LANGUAGE plpgsql;'
+	);
+
+
+	PERFORM dblink_exec(
+		'CREATE OR REPLACE FUNCTION search_purchase_by_weight(my_weight numeric(10))
+  		 RETURNS TABLE(id integer,
+						buyer_name text,
+						weight numeric(10),
+						price numeric(10),
+						status text)
+  		 AS
+		 $func$
+		 BEGIN
+
+		    RETURN QUERY
+		 	SELECT p.id, p.buyer_name, p.weight, p.price, p.status FROM purchase AS p WHERE p.weight>=my_weight;
+
+		 END;
+		 $func$ LANGUAGE plpgsql;'
+	);
+
+	PERFORM dblink_exec(
+		'CREATE OR REPLACE FUNCTION search_purchase_by_price(my_price numeric(10))
+  		 RETURNS TABLE(id integer,
+						buyer_name text,
+						weight numeric(10),
+						price numeric(10),
+						status text)
+  		 AS
+		 $func$
+		 BEGIN
+
+		    RETURN QUERY
+		 	SELECT p.id, p.buyer_name, p.weight, p.price, p.status FROM purchase AS p WHERE p.price>=my_price;
+
+		 END;
+		 $func$ LANGUAGE plpgsql;'
+	);
+
+	PERFORM dblink_exec(
+		'CREATE OR REPLACE FUNCTION search_purchase_by_status(my_status text)
+  		 RETURNS TABLE(id integer,
+						buyer_name text,
+						weight numeric(10),
+						price numeric(10),
+						status text)
+  		 AS
+		 $func$
+		 BEGIN
+
+		    RETURN QUERY
+		 	SELECT p.id, p.buyer_name, p.weight, p.price, p.status FROM purchase AS p WHERE p.status=my_status;
+
+		 END;
+		 $func$ LANGUAGE plpgsql;'
+	);
+
+	PERFORM dblink_exec(
+		'CREATE OR REPLACE FUNCTION get_purchase_items(my_id integer) RETURNS
+		 TABLE (purchase_id integer,
+				item_name text,
+            	quantity integer)
+		 AS $func$
+		 BEGIN
+
+		    RETURN QUERY
+		 	SELECT pi.purchase_id, pi.item_name, pi.quantity FROM purchase_item AS pi WHERE pi.purchase_id=my_id;
+
+		 END;
+		 $func$ LANGUAGE plpgsql;'
+	);
 
 END IF;
 

@@ -1,6 +1,6 @@
 import psycopg2
 from sqlalchemy import create_engine, text
-from auth import login, create_new_db, drop_db, take_from_storage, get_weight, get_price
+from auth import login, create_new_db, drop_db, take_from_storage, get_weight, get_price, search_purchase_by_name
 from tkinter import *
 from app import App
 import tkinter as tk
@@ -14,6 +14,8 @@ if __name__ == "__main__":
 
 
     # engine = create_engine(f"postgresql+psycopg2://qeq:111@localhost/user_db")
+    # print(search_purchase_by_name('alex', engine))
+
     # conn = engine.connect()
     # res = tuple(conn.execute('SELECT get_last_order_id();'))[0][0]
     # conn.close()

@@ -1,5 +1,6 @@
 import tkinter as tk
 from auth import login, create_new_db, drop_db, registrate_user, check_role, is_enough_items_for_order, create_order
+from auth import search_purchase_by_name, search_purchase_by_status, search_purchase_by_id
 from tkinter import messagebox, ttk
 from utils import VerticalScrolledFrame
 
@@ -301,11 +302,39 @@ class ManageOrders(VerticalScrolledFrame):
         create_order_label = tk.Label(self.interior, text="Search orders", bg='light blue', font='Times 20', pady=30)
         create_order_label.grid(row=7, column=0, columnspan=2)
 
+        filter_label = tk.Label(self.interior, bg='light blue', font='Times 15', text='Choose the filter', pady=10, padx=0)
+        drop_var = tk.StringVar(self.controller)
+        drop_var.set('id')
+        dropdown = tk.OptionMenu(self.interior, drop_var, *['id', 'name', 'status'])
+        dropdown.config(font='Times 15')
+
+        filter_label.grid(row=8, column=0, pady=10, padx=10)
+        dropdown.grid(row=8, column=1, pady=10, padx=10)
+
+        val_label = tk.Label(self.interior, bg='light blue', font='Times 15',
+                                text='Enter value', pady=10, padx=10)
+        val_input = tk.Entry(self.interior, font='Times 15')
+        val_label.grid(row=9, column=0, pady=10, padx=10)
+        val_input.grid(row=9, column=1, pady=10, padx=10)
+
+        search_btn = tk.Button(self.interior, text="Search", font='Times 15',
+                                  command=lambda: self.search_by_filter(drop_var.get(), val_input.get(), self.engine))
+        search_btn.grid(row=10, column=0, columnspan=2, pady=20)
 
 
         button_back = tk.Button(self.interior, text="Back", font='Times 15',
                         command=self.goback)
         button_back.place(anchor='nw', y=40)
+
+    def search_by_filter(self, _filter, val, engine):
+        res = None
+        if _filter == 'id':
+            res = search_purchase_by_id(val, engine)
+        elif _filter == 'status':
+            res = search_purchase_by_status(val, engine)
+        elif _filter == 'name':
+            res = search_purchase_by_name(val, engine)
+        print(res)
 
 
     def goback(self):
@@ -313,10 +342,3 @@ class ManageOrders(VerticalScrolledFrame):
         self.parent.tkraise()
         self.destroy()
 
-
-#TODO:
-#   1) идем в айтемы и проверяем, есть ли на складе все необходимые айтемы
-#   2) если нет, то дропаем ошибку
-#   3) если да, то высчитываем вес заказа, его цену (sum(items) + tanh(С * sum(weights) - 1) + 1)
-#   4) добавляем заказ в таблицу purchase
-#   5) добавляем в таблицу purchase_item order_id:item
