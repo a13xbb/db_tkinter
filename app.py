@@ -1,13 +1,14 @@
 import tkinter as tk
 from auth import login, create_new_db, drop_db, registrate_user, check_role, is_enough_items_for_order
-from tkinter import messagebox
+from tkinter import messagebox, ttk
+from utils import VerticalScrolledFrame
 
 
 class App(tk.Tk):
 
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
-        self.geometry('700x700')
+        self.geometry('800x700')
 
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand=True)
@@ -255,21 +256,23 @@ class ManageItems(tk.Frame):
         self.parent.tkraise()
         self.destroy()
 
-class ManageOrders(tk.Frame):
+
+class ManageOrders(VerticalScrolledFrame):
     def __init__(self, parent: MerchandiserPage, engine, controller: App):
-        tk.Frame.__init__(self, parent, bg='light blue')
+        VerticalScrolledFrame.__init__(self, parent)
         self.parent = parent
         self.engine = engine
-        create_order_label = tk.Label(self, text="Add order", bg='light blue', font='Times 15', pady=30)
+        self.controller = controller
+        create_order_label = tk.Label(self.interior, text="Add order", bg='light blue', font='Times 15', pady=30)
         create_order_label.grid(row=1,column=0, columnspan=2)
 
-        buyername_label = tk.Label(self, bg='light blue', font='Times 15', text='Buyer\'s name', pady=10, padx=10)
-        buyername_input = tk.Entry(self, font='Times 15')
-        status_label = tk.Label(self, bg='light blue', font='Times 15', text='Payment status of \nthe order inplace', pady=10, padx=10)
-        status_input = tk.Entry(self, font='Times 15')
-        items_label = tk.Label(self, bg='light blue', font='Times 15', text='Items (coma-separated)',
+        buyername_label = tk.Label(self.interior, bg='light blue', font='Times 15', text='Buyer\'s name', pady=10, padx=10)
+        buyername_input = tk.Entry(self.interior, font='Times 15')
+        status_label = tk.Label(self.interior, bg='light blue', font='Times 15', text='Payment status of \nthe order inplace', pady=10, padx=10)
+        status_input = tk.Entry(self.interior, font='Times 15')
+        items_label = tk.Label(self.interior, bg='light blue', font='Times 15', text='Items (coma-separated)',
                                 pady=10, padx=10)
-        items_input = tk.Text(self, height=7, width=29, font='Times 15', wrap='word')
+        items_input = tk.Text(self.interior, height=7, width=29, font='Times 15', wrap='word')
 
         def get_order():
             if not is_enough_items_for_order(items_input.get('1.0', 'end')[:-1], self.engine):
@@ -289,15 +292,14 @@ class ManageOrders(tk.Frame):
         status_input.grid(row=3, column=1, pady=10, padx=10)
         items_label.grid(row=4, column=0, columnspan=2)
         items_input.grid(row=5, column=0, columnspan=2)
-        add_order_btn = tk.Button(self, text="Add new order", font='Times 15',
+        add_order_btn = tk.Button(self.interior, text="Add new order", font='Times 15',
                                    command=get_order)
         add_order_btn.grid(row=6, column=0, columnspan=2, pady=20)
 
 
-        button_back = tk.Button(self, text="Back", font='Times 15',
+        button_back = tk.Button(self.interior, text="Back", font='Times 15',
                         command=self.goback)
         button_back.place(anchor='nw', y=40)
-
 
 
     def goback(self):
