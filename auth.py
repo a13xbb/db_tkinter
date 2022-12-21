@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError
 from tkinter import messagebox
 from sqlalchemy_utils.functions import database_exists, drop_database
+from math import tanh, ceil
 
 
 def login(username, password, dbname):
@@ -123,12 +124,19 @@ def take_from_storage(item_name, quantity, engine):
     conn.execute(f'UPDATE item SET quantity=quantity-{quantity} WHERE name=\'{item_name}\';')
     conn.close()
 
-
-def create_order(items: str, engine):
-    """функция добавления заказа, нужно дописать"""
+def create_order(buyer_name, status, items: str, engine):
     items_dct = str_to_list(items)
 
     weight = 0
     price = 0
-    for item, qnt in items_dct:
-        pass
+    for k, v in items_dct.items():
+        k = k.strip().replace('\n', '')
+        weight += v*get_weight(k, engine)
+        price += v*get_price(k, engine)
+        take_from_storage(k, v, engine)
+
+    price = ceil(float(price) + 5 * tanh(weight/20 - 1) + 5)
+
+    conn = engine.connect()
+    conn.execute(f'INSERT INTO purchase(buyer_name, weight, price, status) VALUES(\'{buyer_name}\', {weight}, {price} , \'{status}\');')
+    conn.close()
