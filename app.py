@@ -1,5 +1,5 @@
 import tkinter as tk
-from auth import login, create_new_db, drop_db, registrate_user, check_role, is_enough_items_for_order
+from auth import login, create_new_db, drop_db, registrate_user, check_role, is_enough_items_for_order, create_order
 from tkinter import messagebox, ttk
 from utils import VerticalScrolledFrame
 
@@ -284,7 +284,7 @@ class ManageOrders(VerticalScrolledFrame):
             elif items_input.get('1.0', 'end')[:-1] == '':
                 messagebox.showerror(title='Error', message='Enter 1 item at least')
             else:
-                return None # lambda call to DB
+                create_order(buyer_name=buyername_input.get(), items=items_input.get('1.0', 'end'), status=status_input.get(), engine=engine)
 
         buyername_label.grid(row=2, column=0)
         buyername_input.grid(row=2, column=1, pady=10, padx=10)
