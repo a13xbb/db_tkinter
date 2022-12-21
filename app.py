@@ -263,7 +263,7 @@ class ManageOrders(VerticalScrolledFrame):
         self.parent = parent
         self.engine = engine
         self.controller = controller
-        create_order_label = tk.Label(self.interior, text="Add order", bg='light blue', font='Times 15', pady=30)
+        create_order_label = tk.Label(self.interior, text="Add order", bg='light blue', font='Times 20', pady=30)
         create_order_label.grid(row=1,column=0, columnspan=2)
 
         buyername_label = tk.Label(self.interior, bg='light blue', font='Times 15', text='Buyer\'s name', pady=10, padx=10)
@@ -295,6 +295,12 @@ class ManageOrders(VerticalScrolledFrame):
         add_order_btn = tk.Button(self.interior, text="Add new order", font='Times 15',
                                    command=get_order)
         add_order_btn.grid(row=6, column=0, columnspan=2, pady=20)
+
+#search orders
+
+        create_order_label = tk.Label(self.interior, text="Search orders", bg='light blue', font='Times 20', pady=30)
+        create_order_label.grid(row=7, column=0, columnspan=2)
+
 
 
         button_back = tk.Button(self.interior, text="Back", font='Times 15',

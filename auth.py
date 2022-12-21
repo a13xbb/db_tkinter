@@ -75,7 +75,7 @@ def is_in_storage(item, quantity, engine) -> bool:
     return res
 
 
-def str_to_list(items: str) -> dict:
+def str_to_dict(items: str) -> dict:
     items = items.split(',')
     items_dct = {}
     for i in range(len(items)):
@@ -96,7 +96,7 @@ def str_to_list(items: str) -> dict:
 
 def is_enough_items_for_order(items: str, engine) -> bool:
 
-    items_dct = str_to_list(items)
+    items_dct = str_to_dict(items)
 
     for item, cnt in items_dct.items():
         if not is_in_storage(item, cnt, engine):
@@ -125,13 +125,33 @@ def take_from_storage(item_name, quantity, engine):
     conn.close()
 
 
+def add_item_to_order(purchase_id, item_name, quantity, engine):
+    conn = engine.connect()
+    conn.execute(f'INSERT INTO purchase_item(purchase_id, item_name, quantity) VALUES({purchase_id}, \'{item_name}\', {quantity})')
+    conn.close()
+
+
+def get_last_order_id(engine):
+    conn = engine.connect()
+    res = tuple(conn.execute('SELECT get_last_order_id();'))[0][0]
+    conn.close()
+    return res
+
+
 def create_order(buyer_name, status, items: str, engine):
-    items_dct = str_to_list(items)
+
+    cur_order_id = get_last_order_id(engine) + 1
+
+    items_dct = str_to_dict(items)
 
     weight = 0
     price = 0
     for k, v in items_dct.items():
         k = k.strip().replace('\n', '')
+        if k == '':
+            continue
+
+        add_item_to_order(cur_order_id, k, v, engine)
         weight += v*get_weight(k, engine)
         price += v*get_price(k, engine)
         take_from_storage(k, v, engine)
@@ -142,4 +162,7 @@ def create_order(buyer_name, status, items: str, engine):
     # conn.execute(text('SELECT create_order(:buyer_name, :weight, :price, :status);'),
     #              buyer_name=f'\'buyer_name\'', weight=float(weight), price=price, status=f'\'status\'')
     conn.execute(f'INSERT INTO purchase(buyer_name, weight, price, status) VALUES(\'{buyer_name}\', {weight}, {price} , \'{status}\');')
+
     conn.close()
+
+
