@@ -1,6 +1,6 @@
 import tkinter as tk
 from auth import login, create_new_db, drop_db, registrate_user, check_role, is_enough_items_for_order, create_order
-from auth import search_purchase_by_name, search_purchase_by_status, search_purchase_by_id
+from auth import search_purchase_by_name, search_purchase_by_status, search_purchase_by_id, get_order_items
 from tkinter import messagebox, ttk
 from utils import VerticalScrolledFrame
 
@@ -9,8 +9,8 @@ class App(tk.Tk):
 
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
-        self.geometry('800x700')
-
+        self.geometry('1000x700')
+        self.option_add('*Dialog.msg.font', 'Times 10')
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand=True)
         container.grid_rowconfigure(0, weight=1)
@@ -30,16 +30,16 @@ class StartPage(tk.Frame):
         tk.Frame.__init__(self, parent, bg='light blue')
         self.controller = controller
         self.parent = parent
-        label = tk.Label(self, text="Hello!", bg='light blue', font=25)
-        label.pack(side="top", fill="x", pady=10)
+        label = tk.Label(self, text="Hello!", bg='light blue', font='Times 17')
+        label.pack(side="top", fill="x", pady=20)
 
         button1 = tk.Button(self, text="Sign in", font=25, bg='#2bbcd4',
                             command=self.redirect_to_sign_in_page)
         button2 = tk.Button(self, text="Sign in as superuser", font=25, bg='#2bbcd4',
                             command=self.redirect_to_superuser_login_page)
 
-        button1.pack()
-        button2.pack()
+        button1.pack(pady=10)
+        button2.pack(pady=10)
 
     def redirect_to_superuser_login_page(self):
         admin_login = SuperUserLogin(parent=self.parent, controller=self.controller)
@@ -58,26 +58,28 @@ class SuperUserLogin(tk.Frame):
         tk.Frame.__init__(self, parent, bg='light blue')
         self.controller = controller
         self.parent = parent
-        label = tk.Label(self, text="Sign in as superuser", bg='light blue', font=25)
+        label = tk.Label(self, text="Sign in as superuser", bg='light blue', font='Times 17')
         label.pack(side="top", fill="x", pady=10)
 
-        username_input = tk.Entry(self, bg='white')
-        password_input = tk.Entry(self, bg='white', show='*')
-        username_input.pack()
-        password_input.pack()
+        username_input = tk.Entry(self, bg='white', font='Times 15')
+        password_input = tk.Entry(self, bg='white', show='*', font='Times 15')
+        username_input.pack(pady=10)
+        password_input.pack(pady=10)
 
         button = tk.Button(self, text="Sign in", font=25, bg='#2bbcd4',
                            command=lambda: self.redirect_to_superuser_page(username_input.get(), password_input.get()))
         self.controller.bind('<Return>',
                              lambda event: self.redirect_to_superuser_page(username_input.get(), password_input.get()))
-        button.pack()
+        button.pack(pady=10)
 
         button_back = tk.Button(self, text="Back", font=25,
                                 command=controller.show_start_page)
-        button_back.pack()
+        button_back.pack(pady=10)
 
     def redirect_to_superuser_page(self, username, password):
         try:
+            if username != 'postgres':
+                raise Exception
             engine = login(username, password, 'super_db')
             admin_page = SuperUserPage(parent=self.parent, engine=engine, controller=self.controller,
                                        username=username, password=password)
@@ -96,20 +98,20 @@ class SuperUserPage(tk.Frame):
         self.engine = engine
         self.username = username
         self.password = password
-        label = tk.Label(self, text="Superuser page", bg='light blue', font=25)
+        label = tk.Label(self, text="Superuser page", bg='light blue', font='Times 17')
         label.pack(side="top", fill="x", pady=10)
 
         button_create = tk.Button(self, text="Create user database", font=25, bg='#2bbcd4',
                                   command=lambda: create_new_db('user_db', self.engine,
                                                                 self.username, self.password))
-        button_create.pack()
+        button_create.pack(pady=10)
 
         button_delete = tk.Button(self, text="Delete user database", font=25, bg='#2bbcd4',
                                   command=lambda: drop_db('user_db', self.engine, self.username, self.password))
-        button_delete.pack()
+        button_delete.pack(pady=10)
         button_back = tk.Button(self, text="Back", font=25,
                                 command=controller.show_start_page)
-        button_back.pack()
+        button_back.pack(pady=10)
 
 
 class SignIn(tk.Frame):
@@ -118,23 +120,23 @@ class SignIn(tk.Frame):
         tk.Frame.__init__(self, parent, bg='light blue')
         self.controller = controller
         self.parent = parent
-        label = tk.Label(self, text="Sign in", bg='light blue', font=25)
+        label = tk.Label(self, text="Sign in", bg='light blue', font='Times 17')
         label.pack(side="top", fill="x", pady=10)
 
-        username_input = tk.Entry(self, bg='white')
-        password_input = tk.Entry(self, bg='white', show='*')
-        username_input.pack()
-        password_input.pack()
+        username_input = tk.Entry(self, bg='white', font='Times 15')
+        password_input = tk.Entry(self, bg='white', show='*', font='Times 15')
+        username_input.pack(pady=10)
+        password_input.pack(pady=10)
 
         button = tk.Button(self, text="Sign in", font=25, bg='#2bbcd4',
                            command=lambda: self.redirect(username_input.get(), password_input.get()))
         self.controller.bind('<Return>',
                              lambda event: self.redirect(username_input.get(), password_input.get()))
-        button.pack()
+        button.pack(pady=10)
 
         button_back = tk.Button(self, text="Back", font=25,
                                 command=controller.show_start_page)
-        button_back.pack()
+        button_back.pack(pady=10)
 
     def redirect(self, username, password):
         try:
@@ -233,11 +235,11 @@ class MerchandiserPage(tk.Frame):
 
         add_order_goto_button = tk.Button(self, text="Manage orders", font='Times 15',
                                         command=lambda: self.redirect_ord())
-        add_order_goto_button.grid(row=4, column=0, columnspan=2)
+        add_order_goto_button.grid(row=4, column=0, columnspan=2, pady=10)
 
         button_back = tk.Button(self, text="Back", font='Times 15',
                                 command=controller.show_start_page)
-        button_back.grid(row=5, column=0, columnspan=2)
+        button_back.grid(row=5, column=0, columnspan=2, pady=10)
 
     def redirect_ord(self):
         disp_page = ManageOrders(parent=self, engine=self.engine, controller=self.controller)
@@ -308,25 +310,52 @@ class ManageOrders(VerticalScrolledFrame):
         dropdown = tk.OptionMenu(self.interior, drop_var, *['id', 'name', 'status'])
         dropdown.config(font='Times 15')
 
-        filter_label.grid(row=8, column=0, pady=10, padx=10)
-        dropdown.grid(row=8, column=1, pady=10, padx=10)
+        filter_label.grid(row=9, column=0, pady=10, padx=10)
+        dropdown.grid(row=9, column=1, pady=10, padx=10)
 
         val_label = tk.Label(self.interior, bg='light blue', font='Times 15',
-                                text='Enter value', pady=10, padx=10)
+                             text='Enter value', pady=10, padx=10)
         val_input = tk.Entry(self.interior, font='Times 15')
-        val_label.grid(row=9, column=0, pady=10, padx=10)
-        val_input.grid(row=9, column=1, pady=10, padx=10)
+        val_label.grid(row=10, column=0, pady=10, padx=10)
+        val_input.grid(row=10, column=1, pady=10, padx=10)
+
+        purchases_table = ttk.Treeview(self.interior)
+        purchases_table.tag_configure('TkTextFont', font='Times 15')
+        purchases_table['columns'] = ('Id', 'Buyer_name', 'Weight', 'Price', 'Status')
+
+        purchases_table.column("#0", width=0, stretch='no')
+        purchases_table.column("Id", anchor='center', width=120)
+        purchases_table.column("Buyer_name", anchor='center', width=120)
+        purchases_table.column("Weight", anchor='center', width=120)
+        purchases_table.column("Price", anchor='center', width=120)
+        purchases_table.column("Status", anchor='center', width=120)
+
+        purchases_table.heading("#0", text="", anchor='center')
+        purchases_table.heading("Id", text="Id", anchor='center')
+        purchases_table.heading("Buyer_name", text="Buyer name", anchor='center')
+        purchases_table.heading("Weight", text="Weight", anchor='center')
+        purchases_table.heading("Price", text="Price", anchor='center')
+        purchases_table.heading("Status", text="Status", anchor='center')
+
+        id_input = tk.Entry(self.interior, font='Times 15', )
+        get_order_items_btn = tk.Button(self.interior, text="Check items in order by its id", font='Times 15',
+                                        command=lambda: get_order_items(id_input.get(), self.engine))
+        get_order_items_btn.grid(row=8, column=0)
+        id_input.grid(row=8, column=1)
 
         search_btn = tk.Button(self.interior, text="Search", font='Times 15',
-                                  command=lambda: self.search_by_filter(drop_var.get(), val_input.get(), self.engine))
-        search_btn.grid(row=10, column=0, columnspan=2, pady=20)
-
+                               command=lambda: self.search_by_filter(drop_var.get(), val_input.get(), purchases_table, self.engine))
+        search_btn.grid(row=11, column=0, columnspan=2, pady=20)
 
         button_back = tk.Button(self.interior, text="Back", font='Times 15',
-                        command=self.goback)
+                                command=self.goback)
         button_back.place(anchor='nw', y=40)
 
-    def search_by_filter(self, _filter, val, engine):
+
+
+        # my_game.grid(row=11, column=0, columnspan=2)
+
+    def search_by_filter(self, _filter, val, table, engine):
         res = None
         if _filter == 'id':
             res = search_purchase_by_id(val, engine)
@@ -334,8 +363,13 @@ class ManageOrders(VerticalScrolledFrame):
             res = search_purchase_by_status(val, engine)
         elif _filter == 'name':
             res = search_purchase_by_name(val, engine)
-        print(res)
 
+        table.delete(*table.get_children())
+        for i, s in enumerate(res):
+            row = s[0].strip('(').strip(')').split(',')
+            table.insert(parent='', index='end', iid=i, text='',
+                         values=tuple(row))
+        table.grid(row=12, column=0, columnspan=2)
 
     def goback(self):
 

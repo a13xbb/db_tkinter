@@ -188,3 +188,15 @@ def search_purchase_by_status(status:str, engine):
     return res
 
 
+def get_order_items(_id: int, engine):
+    conn = engine.connect()
+    res = tuple(conn.execute(text('SELECT get_purchase_items(:id)'), id=_id))
+    conn.close()
+    if len(res) == 0:
+        messagebox.showerror(title='Error', message='There is no order with such id')
+    else:
+        mes = str()
+        for tup in res:
+            row = tup[0].strip('(').strip(')').split(',')
+            mes += f'{row[1]}: {row[2]} pcs\n'
+        messagebox.showinfo(title=f'items in order {_id}', message=mes)
