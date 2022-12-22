@@ -1,5 +1,5 @@
 import tkinter as tk
-from auth import login, create_new_db, drop_db, registrate_user, check_role, is_enough_items_for_order, create_order
+from auth import login, create_new_db, drop_db, registrate_user, check_role, is_enough_items_for_order, create_order, is_in_storage, register_item, take_from_storage
 from auth import search_purchase_by_name, search_purchase_by_status, search_purchase_by_id, get_order_items
 from auth import mark_as_paid as auth_mark_as_paid
 from tkinter import messagebox, ttk
@@ -234,15 +234,74 @@ class MerchandiserPage(tk.Frame):
         disp_page = ManageOrders(parent=self, engine=self.engine, controller=self.controller)
         disp_page.place(relwidth=1, relheight=1)
         disp_page.tkraise()
-
-
 class ManageItems(tk.Frame):
     def __init__(self, parent: MerchandiserPage, engine, controller: App):
         tk.Frame.__init__(self, parent, bg='light blue')
+        self.parent = parent
+        self.engine = engine
+        self.controller = controller
 
-    # Add items [already registered] (name, quantity) if not exists - error; 
-    # Register Item [new] (name, weight, price) if exists - upd or add; price <=0, weight <=0
+### Register new item for storage suoervision
 
+        add_item_label = tk.Label(self, text="Register New Item", bg='light blue', font='Times 20', pady=30)
+        add_item_label.grid(row=1,column=0, columnspan=2)
+
+        itemname_label = tk.Label(self, bg='light blue', font='Times 15', text='Item\'s name', pady=10, padx=10)
+        itemname_input = tk.Entry(self, font='Times 15')
+        weight_label = tk.Label(self, bg='light blue', font='Times 15', text='Weight of this item', pady=10, padx=10)
+        weight_input = tk.Entry(self, font='Times 15')
+        price_label = tk.Label(self, bg='light blue', font='Times 15', text='Price of this item', pady=10, padx=10)
+        price_input = tk.Entry(self, font='Times 15')
+
+        def reg_item():
+            if is_in_storage(itemname_input.get(), 0, self.engine):
+                messagebox.showerror(title='Error', message='Not enough items')
+            elif weight_input.get() == '' or float(weight_input.get()) < 0:
+                messagebox.showerror(title='Error', message='Enter valid not negative float for weight')
+            elif price_input.get() == '' or float(price_input.get()) <= 0:
+                messagebox.showerror(title='Error', message='Enter valid positive float for price')
+            else:
+                register_item(item_name=itemname_input.get(), weight=weight_input.get(), price=price_input.get(), engine=engine)
+
+        itemname_label.grid(row=2, column=0)
+        itemname_input.grid(row=2, column=1, pady=10, padx=10)
+        weight_label.grid(row=3, column=0)
+        weight_input.grid(row=3, column=1, pady=10, padx=10)
+        price_label.grid(row=4, column=0)
+        price_input.grid(row=4, column=1, pady=10, padx=10)
+        reg_item_btn = tk.Button(self, text="Add new item", font='Times 15',
+                                   command=reg_item)
+        reg_item_btn.grid(row=6, column=0, columnspan=2, pady=20)
+
+### Add quantity for known items
+
+        row_displacement = 10
+
+        add_item_label_2 = tk.Label(self, text="Register New Item", bg='light blue', font='Times 20', pady=30)
+        add_item_label_2.grid(row=row_displacement+1,column=0, columnspan=2)
+
+        itemname_label_2 = tk.Label(self, bg='light blue', font='Times 15', text='Item\'s name', pady=10, padx=10)
+        itemname_input_2 = tk.Entry(self, font='Times 15')
+        quant_label = tk.Label(self, bg='light blue', font='Times 15', text='Weight of this item', pady=10, padx=10)
+        quant_input = tk.Entry(self, font='Times 15')
+
+        def add_item():
+            if not is_in_storage(itemname_input.get(), 0, self.engine):
+                messagebox.showerror(title='Error', message='Item name unknown')
+            elif price_input.get() == '' and int(price_input.get()) > 0:
+                messagebox.showerror(title='Error', message='Enter valid positive amount')
+            else:
+                take_from_storage(item_name=itemname_input.get(), quantity=-quant_input.get(), engine=engine)
+
+        itemname_label_2.grid(row=row_displacement+2, column=0)
+        itemname_input_2.grid(row=row_displacement+2, column=1, pady=10, padx=10)
+        quant_label.grid(row=row_displacement+3, column=0)
+        quant_input.grid(row=row_displacement+3, column=1, pady=10, padx=10)
+        add_item_btn = tk.Button(self, text="Add items to storage", font='Times 15',
+                                   command=add_item)
+        add_item_btn.grid(row=row_displacement+5, column=0, columnspan=2, pady=20)
+
+###
     def goback(self):
 
         self.parent.tkraise()
