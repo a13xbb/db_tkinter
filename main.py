@@ -1,6 +1,6 @@
 import psycopg2
 from sqlalchemy import create_engine, text
-from auth import login, create_new_db, drop_db, take_from_storage, get_weight, get_price, search_purchase_by_name
+from utils import login, create_new_db, drop_db, take_from_storage, get_weight, get_price, search_purchase_by_name
 from tkinter import *
 from app import App
 import tkinter as tk
