@@ -388,13 +388,17 @@ class AccountantPage(tk.Frame):
         self.username = username
         self.password = password
         label = tk.Label(self, text="Accountant page", bg='light blue', font='Times 25', pady=40)
-        label.grid(row=0, column=0, columnspan=2)
+        label.grid(row=0, column=0, columnspan=2, padx=100)
 
         id_input = tk.Entry(self, bg='white', font='Times 15', width=6)
         check_info_btn = tk.Button(self, text="Check order info by id", font='Times 15',
                                    command=lambda: self.get_order_info(id_input.get(), self.engine))
         check_info_btn.grid(row=1, column=0, padx=10)
         id_input.grid(row=1, column=1)
+
+        button_back = tk.Button(self, text="Back", font='Times 15',
+                                command=self.controller.show_start_page)
+        button_back.place(anchor='nw', y=40)
 
     def get_order_info(self, _id: int, engine):
         if self.name_label is not None:
