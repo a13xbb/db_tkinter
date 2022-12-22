@@ -125,6 +125,10 @@ def take_from_storage(item_name, quantity, engine):
     conn.execute(f'UPDATE item SET quantity=quantity-{quantity} WHERE name=\'{item_name}\';')
     conn.close()
 
+def add_to_storage(item_name, quantity, engine):
+    conn = engine.connect()
+    conn.execute(f'UPDATE item SET quantity=quantity+{quantity} WHERE name=\'{item_name}\';')
+    conn.close()
 
 def add_item_to_order(purchase_id, item_name, quantity, engine):
     conn = engine.connect()
@@ -205,4 +209,12 @@ def get_order_items(_id: int, engine):
 def mark_as_paid(_id: int, engine):
     conn = engine.connect()
     conn.execute(f'UPDATE purchase SET status=\'paid\' WHERE id={_id}')
+    conn.close()
+    
+def register_item(item_name, weight, price, engine):
+    conn = engine.connect()
+    # conn.execute(text('SELECT create_order(:buyer_name, :weight, :price, :status);'),
+    #              buyer_name=f'\'buyer_name\'', weight=float(weight), price=price, status=f'\'status\'')
+    conn.execute(f'INSERT INTO item(name, weight, quantity, price) VALUES(\'{item_name}\', {weight}, 0, {price});')
+
     conn.close()
