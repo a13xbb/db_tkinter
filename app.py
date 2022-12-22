@@ -1,5 +1,5 @@
 import tkinter as tk
-from auth import login, create_new_db, drop_db, registrate_user, check_role, is_enough_items_for_order, create_order, is_in_storage, register_item, take_from_storage
+from auth import login, create_new_db, drop_db, registrate_user, check_role, is_enough_items_for_order, create_order, is_in_storage, register_item, add_to_storage
 from auth import search_purchase_by_name, search_purchase_by_status, search_purchase_by_id, get_order_items
 from auth import mark_as_paid as auth_mark_as_paid
 from tkinter import messagebox, ttk
@@ -296,12 +296,12 @@ class ManageItems(tk.Frame):
         quant_input = tk.Entry(self, font='Times 15')
 
         def add_item():
-            if not is_in_storage(itemname_input.get(), 0, self.engine):
+            if not is_in_storage(itemname_input_2.get(), 0, self.engine):
                 messagebox.showerror(title='Error', message='Item name unknown')
-            elif price_input.get() == '' and int(price_input.get()) > 0:
+            elif quant_input.get() == '' and int(quant_input.get()) > 0:
                 messagebox.showerror(title='Error', message='Enter valid positive amount')
             else:
-                take_from_storage(item_name=itemname_input.get(), quantity=-int(quant_input.get()), engine=engine)
+                add_to_storage(item_name=itemname_input_2.get(), quantity=int(quant_input.get()), engine=engine)
 
         itemname_label_2.grid(row=row_displacement+2, column=0)
         itemname_input_2.grid(row=row_displacement+2, column=1, pady=10, padx=10)

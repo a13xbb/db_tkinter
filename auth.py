@@ -125,6 +125,10 @@ def take_from_storage(item_name, quantity, engine):
     conn.execute(f'UPDATE item SET quantity=quantity-{quantity} WHERE name=\'{item_name}\';')
     conn.close()
 
+def add_to_storage(item_name, quantity, engine):
+    conn = engine.connect()
+    conn.execute(f'UPDATE item SET quantity=quantity+{quantity} WHERE name=\'{item_name}\';')
+    conn.close()
 
 def add_item_to_order(purchase_id, item_name, quantity, engine):
     conn = engine.connect()
