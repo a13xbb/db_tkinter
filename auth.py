@@ -206,3 +206,11 @@ def mark_as_paid(_id: int, engine):
     conn = engine.connect()
     conn.execute(f'UPDATE purchase SET status=\'paid\' WHERE id={_id}')
     conn.close()
+    
+def register_item(item_name, weight, price, engine):
+    conn = engine.connect()
+    # conn.execute(text('SELECT create_order(:buyer_name, :weight, :price, :status);'),
+    #              buyer_name=f'\'buyer_name\'', weight=float(weight), price=price, status=f'\'status\'')
+    conn.execute(f'INSERT INTO item(name, weight, quantity, price) VALUES(\'{item_name}\', {weight}, 0, {price});')
+
+    conn.close()
