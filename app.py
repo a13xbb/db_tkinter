@@ -1,7 +1,7 @@
 import tkinter as tk
 from auth import login, create_new_db, drop_db, registrate_user, check_role, is_enough_items_for_order, create_order, is_in_storage, register_item, add_to_storage
 from auth import search_purchase_by_name, search_purchase_by_status, search_purchase_by_id, get_order_items
-from auth import mark_as_paid as auth_mark_as_paid
+from auth import mark_as_paid as auth_mark_as_paid, get_transaction_by_name, get_all_transactions
 from tkinter import messagebox, ttk
 from utils import VerticalScrolledFrame
 
@@ -449,6 +449,8 @@ class AccountantPage(VerticalScrolledFrame):
     def __init__(self, parent, engine, controller, username, password):
         VerticalScrolledFrame.__init__(self, parent)
         #
+        self.controller = controller
+        self.engine = engine
         self.interior.name_label = None
         self.interior.price_label = None
         self.interior.status_label = None
@@ -474,8 +476,57 @@ class AccountantPage(VerticalScrolledFrame):
         button_back.place(anchor='nw', y=40, x=100)
 
         #------------------------------------ ACCOUNTANT SEARCH ---------------------------------------
-        
+        search_label = tk.Label(self.interior, text="Search transactions", bg='light blue', font='Times 18', pady=40, padx=100)
+        search_label.grid(row=6, column=0, columnspan=2, padx=100)
+        filter_label = tk.Label(self.interior, bg='light blue', font='Times 15', text='Choose the filter', pady=10,
+                                padx=0)
+        drop_var = tk.StringVar(self.controller)
+        drop_var.set('all')
+        dropdown = tk.OptionMenu(self.interior, drop_var, *['all', 'name'])
+        dropdown.config(width=7)
+        dropdown.config(font='Times 15')
+
+        filter_label.grid(row=7, column=0, pady=10, padx=10)
+        dropdown.grid(row=7, column=1, pady=10, padx=10)
+
+        purchases_table = ttk.Treeview(self.interior)
+        purchases_table.tag_configure('TkTextFont', font='Times 15')
+        purchases_table['columns'] = ('Id', 'Cost', 'Counteragent')
+
+        purchases_table.column("#0", width=0, stretch='no')
+        purchases_table.column("Id", anchor='center', width=120)
+        purchases_table.column("Cost", anchor='center', width=120)
+        purchases_table.column("Counteragent", anchor='center', width=120)
+
+        purchases_table.heading("#0", text="", anchor='center')
+        purchases_table.heading("Id", text="Id", anchor='center')
+        purchases_table.heading("Cost", text="Cost", anchor='center')
+        purchases_table.heading("Counteragent", text="Counteragent", anchor='center')
+
+        name_input = tk.Entry(self.interior, font='Times 15')
+
+        search_btn = tk.Button(self.interior, text="Search", font='Times 15',
+                               command=lambda: self.search_by_filter(drop_var.get(), name_input.get(), purchases_table,
+                                                                     self.engine))
+        search_btn.grid(row=9, column=0, columnspan=2, pady=20)
+
+        name_input.grid(row=8, column=0, columnspan=2, pady=20)
+
+    def search_by_filter(self, _filter, val, table, engine):
+        res = None
+        if _filter == 'all':
+            res = get_all_transactions(self.engine)
+        elif _filter == 'name':
+            res = get_transaction_by_name(val, engine)
+
+        table.delete(*table.get_children())
+        for i, s in enumerate(res):
+            row = s[0].strip('(').strip(')').split(',')
+            table.insert(parent='', index='end', iid=i, text='',
+                         values=tuple(row))
+        table.grid(row=10, column=0, columnspan=2)
         # ------------------------------------ ACCOUNTANT SEARCH ---------------------------------------
+
 
 
     def get_order_info(self, _id: int, engine):

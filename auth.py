@@ -210,11 +210,25 @@ def mark_as_paid(_id: int, engine):
     conn = engine.connect()
     conn.execute(f'UPDATE purchase SET status=\'paid\' WHERE id={_id}')
     conn.close()
-    
+
+
 def register_item(item_name, weight, price, engine):
     conn = engine.connect()
     # conn.execute(text('SELECT create_order(:buyer_name, :weight, :price, :status);'),
     #              buyer_name=f'\'buyer_name\'', weight=float(weight), price=price, status=f'\'status\'')
     conn.execute(f'INSERT INTO item(name, weight, quantity, price) VALUES(\'{item_name}\', {weight}, 0, {price});')
-
     conn.close()
+
+
+def get_all_transactions(engine):
+    conn = engine.connect()
+    res = tuple(conn.execute('SELECT get_all_transactions();'))
+    conn.close()
+    return res
+
+
+def get_transaction_by_name(name, engine):
+    conn = engine.connect()
+    res = tuple(conn.execute(text('SELECT search_transaction_by_name(:name);'), name=name))
+    conn.close()
+    return res
