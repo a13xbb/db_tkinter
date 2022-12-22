@@ -267,3 +267,21 @@ def get_transaction_by_name(name, engine):
     res = tuple(conn.execute(text('SELECT search_transaction_by_name(:name);'), name=name))
     conn.close()
     return res
+
+def del_item(item_name, engine):
+    conn = engine.connect()
+    # conn.execute(text('SELECT create_order(:buyer_name, :weight, :price, :status);'),
+    #              buyer_name=f'\'buyer_name\'', weight=float(weight), price=price, status=f'\'status\'')
+    conn.execute(f'DELETE FROM item WHERE name=\'{item_name}\';')
+    conn.close()
+
+def flush_table(mode, engine):
+    conn = engine.connect()
+    if mode == '*':
+        conn.execute(f'TRUNCATE TABLE users;')
+        conn.execute(f'TRUNCATE TABLE item;')
+        conn.execute(f'TRUNCATE TABLE purchase_item;')
+        conn.execute(f'TRUNCATE TABLE transaction;')
+    else:
+        conn.execute(f'TRUNCATE TABLE {mode};')
+    conn.close()
