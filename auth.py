@@ -200,3 +200,9 @@ def get_order_items(_id: int, engine):
             row = tup[0].strip('(').strip(')').split(',')
             mes += f'{row[1]}: {row[2]} pcs\n'
         messagebox.showinfo(title=f'items in order {_id}', message=mes)
+
+
+def mark_as_paid(_id: int, engine):
+    conn = engine.connect()
+    conn.execute(f'UPDATE purchase SET status=\'paid\' WHERE id={_id}')
+    conn.close()

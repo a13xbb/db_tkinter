@@ -1,6 +1,7 @@
 import tkinter as tk
 from auth import login, create_new_db, drop_db, registrate_user, check_role, is_enough_items_for_order, create_order
 from auth import search_purchase_by_name, search_purchase_by_status, search_purchase_by_id, get_order_items
+from auth import mark_as_paid as auth_mark_as_paid
 from tkinter import messagebox, ttk
 from utils import VerticalScrolledFrame
 
@@ -210,18 +211,6 @@ class AdminPage(tk.Frame):
         button_back.place(anchor='nw', y=40)
 
 
-class AccountantPage(tk.Frame):
-    def __init__(self, parent, engine, controller, username, password):
-        tk.Frame.__init__(self, parent, bg='light blue', padx=180)
-        self.controller = controller
-        self.parent = parent
-        self.engine = engine
-        self.username = username
-        self.password = password
-        label = tk.Label(self, text="Accountant page", bg='light blue', font='Times 25', pady=40)
-        label.grid(row=0, column=0, columnspan=2)
-
-
 class MerchandiserPage(tk.Frame):
     def __init__(self, parent, engine, controller, username, password):
         tk.Frame.__init__(self, parent, bg='light blue', padx=180)
@@ -271,8 +260,13 @@ class ManageOrders(VerticalScrolledFrame):
 
         buyername_label = tk.Label(self.interior, bg='light blue', font='Times 15', text='Buyer\'s name', pady=10, padx=10)
         buyername_input = tk.Entry(self.interior, font='Times 15')
+        status_var = tk.StringVar(self.controller)
+        status_var.set('unpaid')
+        status_dropdown = tk.OptionMenu(self.interior, status_var, *['unpaid', 'credit', 'paid'])
+        status_dropdown.config(font='Times 15')
+
         status_label = tk.Label(self.interior, bg='light blue', font='Times 15', text='Payment status of \nthe order inplace', pady=10, padx=10)
-        status_input = tk.Entry(self.interior, font='Times 15')
+        # status_input = tk.Entry(self.interior, font='Times 15')
         items_label = tk.Label(self.interior, bg='light blue', font='Times 15', text='Items (coma-separated)',
                                 pady=10, padx=10)
         items_input = tk.Text(self.interior, height=7, width=29, font='Times 15', wrap='word')
@@ -282,17 +276,18 @@ class ManageOrders(VerticalScrolledFrame):
                 messagebox.showerror(title='Error', message='Not enough items')
             elif buyername_input.get() == '':
                 messagebox.showerror(title='Error', message='Enter buyer\'s name')
-            elif status_input.get() == '':
+            elif status_var.get() == '':
                 messagebox.showerror(title='Error', message='Enter status')
             elif items_input.get('1.0', 'end')[:-1] == '':
                 messagebox.showerror(title='Error', message='Enter 1 item at least')
             else:
-                create_order(buyer_name=buyername_input.get(), items=items_input.get('1.0', 'end'), status=status_input.get(), engine=engine)
+                create_order(buyer_name=buyername_input.get(), items=items_input.get('1.0', 'end'), status=status_var.get(), engine=engine)
 
         buyername_label.grid(row=2, column=0)
         buyername_input.grid(row=2, column=1, pady=10, padx=10)
         status_label.grid(row=3, column=0)
-        status_input.grid(row=3, column=1, pady=10, padx=10)
+        status_dropdown.grid(row=3, column=1, pady=10, padx=10)
+        # status_input.grid(row=3, column=1, pady=10, padx=10)
         items_label.grid(row=4, column=0, columnspan=2)
         items_input.grid(row=5, column=0, columnspan=2)
         add_order_btn = tk.Button(self.interior, text="Add new order", font='Times 15',
@@ -376,3 +371,53 @@ class ManageOrders(VerticalScrolledFrame):
         self.parent.tkraise()
         self.destroy()
 
+
+class AccountantPage(tk.Frame):
+    def __init__(self, parent, engine, controller, username, password):
+        tk.Frame.__init__(self, parent, bg='light blue', padx=180)
+        #
+        self.name_label = None
+        self.price_label = None
+        self.status_label = None
+        self.set_paid_btn = None
+        #
+
+        self.controller = controller
+        self.parent = parent
+        self.engine = engine
+        self.username = username
+        self.password = password
+        label = tk.Label(self, text="Accountant page", bg='light blue', font='Times 25', pady=40)
+        label.grid(row=0, column=0, columnspan=2)
+
+        id_input = tk.Entry(self, bg='white', font='Times 15', width=6)
+        check_info_btn = tk.Button(self, text="Check order info by id", font='Times 15',
+                                   command=lambda: self.get_order_info(id_input.get(), self.engine))
+        check_info_btn.grid(row=1, column=0, padx=10)
+        id_input.grid(row=1, column=1)
+
+    def get_order_info(self, _id: int, engine):
+        if self.name_label is not None:
+            self.name_label.destroy()
+            self.price_label.destroy()
+            self.status_label.destroy()
+        if self.set_paid_btn is not None:
+            self.set_paid_btn.destroy()
+        res = search_purchase_by_id(_id, engine)
+        res = res[0][0].strip('(').strip(')').split(',')
+        name, price, status = [res[1], res[3], res[4]]
+        self.name_label = tk.Label(self, text=f'Buyer: {name}', bg='light blue', font='Times 18', pady=10, fg='#0260fd')
+        self.price_label = tk.Label(self, text=f'Price: {price}', bg='light blue', font='Times 18', pady=10, fg='#0260fd')
+        self.status_label = tk.Label(self, text=f'Status: {status}', bg='light blue', font='Times 18', pady=10, fg='#0260fd')
+        self.name_label.grid(row=2, column=0, columnspan=2)
+        self.price_label.grid(row=3, column=0, columnspan=2)
+        self.status_label.grid(row=4, column=0, columnspan=2)
+        if status in ['unpaid', 'credit']:
+            self.set_paid_btn = tk.Button(self, text="Mark as paid", font='Times 15',
+                                          command=lambda: self.mark_as_paid(_id, engine))
+            self.set_paid_btn.grid(row=5, column=0, columnspan=2, padx=10)
+        print(name, price, status)
+
+    def mark_as_paid(self, _id, engine):
+        auth_mark_as_paid(_id, engine)
+        self.get_order_info(_id, engine)
