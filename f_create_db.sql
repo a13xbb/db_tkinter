@@ -10,10 +10,10 @@ ELSE
    -- принцип работы dblink_exec: подключается к указанной бд(в примере - текущая), и выполняет запрос,
    -- переданный вторым аргументом.
    -- для доп.информации можно добавить hostaddr=127.0.0.1 port=5432 dbname=mydb user=postgres password=mypasswd
-   	PERFORM dblink_exec('dbname=' || current_database() || ' user=postgres' || ' password=zhvzhvzhv'   -- current db
+   	PERFORM dblink_exec('dbname=' || current_database() || ' user=postgres' || ' password=1989'   -- current db
                      , 'CREATE DATABASE ' || quote_ident(dbname));
 
-	PERFORM dblink_connect('dbname=user_db user=postgres password=zhvzhvzhv');
+	PERFORM dblink_connect('dbname=user_db user=postgres password=1989');
 
 	PERFORM dblink_exec(
          'CREATE TABLE item (
@@ -21,11 +21,11 @@ ELSE
 			name text UNIQUE NOT NULL,
 			weight numeric(10),
 			quantity integer CHECK (quantity>=0),
-			price numeric(10) NOT NULL);');
+			price numeric(10) CHECK(price>0));');
 
 	PERFORM dblink_exec(
          'CREATE TABLE transaction (
-			current_balance numeric(10),
+			id serial,
 			cost numeric(10) CHECK(cost>0),
 			counteragent_name text NOT NULL);');
 
@@ -50,7 +50,12 @@ ELSE
 			role text NOT NULL);');
 
 	PERFORM dblink_exec(
-         'CREATE ROLE admin WITH LOGIN PASSWORD ''admin'' SUPERUSER;
+		'CREATE INDEX name_idx ON purchase(buyer_name);
+		 CREATE INDEX status_idx ON purchase(status);
+		 CREATE INDEX item_idx ON purchase_item(item_name);');
+
+	PERFORM dblink_exec(
+         'CREATE ROLE admin WITH CREATEROLE SUPERUSER LOGIN PASSWORD ''admin'';
 		  CREATE ROLE accountant;
 		  CREATE ROLE merchandiser;');
 
@@ -62,6 +67,7 @@ ELSE
 		 GRANT ALL PRIVILEGES ON TABLE item TO merchandiser;
 		 GRANT ALL PRIVILEGES ON TABLE purchase TO merchandiser;
 		 GRANT ALL PRIVILEGES ON TABLE purchase_item TO merchandiser;
+		 GRANT INSERT ON TABLE transaction TO merchandiser;
 		 GRANT ALL PRIVILEGES ON TABLE transaction TO accountant;
 		 GRANT ALL PRIVILEGES ON TABLE purchase TO accountant;');
 
@@ -274,6 +280,31 @@ ELSE
 		 END;
 		 $func$ LANGUAGE plpgsql;'
 	);
+
+	PERFORM dblink_exec('
+			CREATE OR REPLACE FUNCTION create_transaction()
+            RETURNS trigger AS
+            $create_transaction$
+              BEGIN
+                  INSERT INTO transaction(cost, counteragent_name) VALUES(NEW.price, new.buyer_name);
+				  RETURN NEW;
+              END;
+            $create_transaction$
+            LANGUAGE plpgsql;');
+
+	PERFORM dblink_exec('
+			CREATE TRIGGER create_transaction
+			AFTER UPDATE OF status ON purchase
+			FOR EACH ROW
+			WHEN (OLD.status IS DISTINCT FROM NEW.status)
+			EXECUTE FUNCTION create_transaction();');
+
+	PERFORM dblink_exec('
+			CREATE TRIGGER create_transaction_on_insert
+			AFTER INSERT ON purchase
+			FOR EACH ROW
+			WHEN (NEW.status=''paid'')
+			EXECUTE FUNCTION create_transaction();');
 
 END IF;
 

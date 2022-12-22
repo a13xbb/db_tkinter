@@ -244,6 +244,7 @@ class MerchandiserPage(tk.Frame):
         disp_page.place(relwidth=1, relheight=1)
         disp_page.tkraise()
 
+
 class ManageItems(tk.Frame):
     def __init__(self, parent: MerchandiserPage, engine, controller: App):
         tk.Frame.__init__(self, parent, bg='light blue')
@@ -311,6 +312,9 @@ class ManageItems(tk.Frame):
                                    command=add_item)
         add_item_btn.grid(row=row_displacement+5, column=0, columnspan=2, pady=20)
 
+        button_back = tk.Button(self, text="Back", font='Times 15',
+                                command=self.goback)
+        button_back.place(anchor='nw', y=40)
 ###
     def goback(self):
 
@@ -441,56 +445,61 @@ class ManageOrders(VerticalScrolledFrame):
         self.destroy()
 
 
-class AccountantPage(tk.Frame):
+class AccountantPage(VerticalScrolledFrame):
     def __init__(self, parent, engine, controller, username, password):
-        tk.Frame.__init__(self, parent, bg='light blue', padx=180)
+        VerticalScrolledFrame.__init__(self, parent)
         #
-        self.name_label = None
-        self.price_label = None
-        self.status_label = None
-        self.set_paid_btn = None
+        self.interior.name_label = None
+        self.interior.price_label = None
+        self.interior.status_label = None
+        self.interior.set_paid_btn = None
         #
 
-        self.controller = controller
-        self.parent = parent
-        self.engine = engine
-        self.username = username
-        self.password = password
-        label = tk.Label(self, text="Accountant page", bg='light blue', font='Times 25', pady=40)
+        self.interior.controller = controller
+        self.interior.parent = parent
+        self.interior.engine = engine
+        self.interior.username = username
+        self.interior.password = password
+        label = tk.Label(self.interior, text="Accountant page", bg='light blue', font='Times 25', pady=40, padx=100)
         label.grid(row=0, column=0, columnspan=2, padx=100)
 
-        id_input = tk.Entry(self, bg='white', font='Times 15', width=6)
-        check_info_btn = tk.Button(self, text="Check order info by id", font='Times 15',
-                                   command=lambda: self.get_order_info(id_input.get(), self.engine))
-        check_info_btn.grid(row=1, column=0, padx=10)
-        id_input.grid(row=1, column=1)
+        id_input = tk.Entry(self.interior, bg='white', font='Times 15', width=6)
+        check_info_btn = tk.Button(self.interior, text="Check order info by id", font='Times 15',
+                                   command=lambda: self.get_order_info(id_input.get(), self.interior.engine))
+        check_info_btn.grid(row=1, column=0, pady=10)
+        id_input.grid(row=1, column=1, pady=10)
 
-        button_back = tk.Button(self, text="Back", font='Times 15',
-                                command=self.controller.show_start_page)
-        button_back.place(anchor='nw', y=40)
+        button_back = tk.Button(self.interior, text="Back", font='Times 15',
+                                command=self.interior.controller.show_start_page)
+        button_back.place(anchor='nw', y=40, x=100)
+
+        #------------------------------------ ACCOUNTANT SEARCH ---------------------------------------
+        
+        # ------------------------------------ ACCOUNTANT SEARCH ---------------------------------------
+
 
     def get_order_info(self, _id: int, engine):
-        if self.name_label is not None:
-            self.name_label.destroy()
-            self.price_label.destroy()
-            self.status_label.destroy()
-        if self.set_paid_btn is not None:
-            self.set_paid_btn.destroy()
+        if self.interior.name_label is not None:
+            self.interior.name_label.destroy()
+            self.interior.price_label.destroy()
+            self.interior.status_label.destroy()
+        if self.interior.set_paid_btn is not None:
+            self.interior.set_paid_btn.destroy()
         res = search_purchase_by_id(_id, engine)
         res = res[0][0].strip('(').strip(')').split(',')
         name, price, status = [res[1], res[3], res[4]]
-        self.name_label = tk.Label(self, text=f'Buyer: {name}', bg='light blue', font='Times 18', pady=10, fg='#0260fd')
-        self.price_label = tk.Label(self, text=f'Price: {price}', bg='light blue', font='Times 18', pady=10, fg='#0260fd')
-        self.status_label = tk.Label(self, text=f'Status: {status}', bg='light blue', font='Times 18', pady=10, fg='#0260fd')
-        self.name_label.grid(row=2, column=0, columnspan=2)
-        self.price_label.grid(row=3, column=0, columnspan=2)
-        self.status_label.grid(row=4, column=0, columnspan=2)
+        self.interior.name_label = tk.Label(self.interior, text=f'Buyer: {name}', bg='light blue', font='Times 18', pady=10, fg='#0260fd')
+        self.interior.price_label = tk.Label(self.interior, text=f'Price: {price}', bg='light blue', font='Times 18', pady=10, fg='#0260fd')
+        self.interior.status_label = tk.Label(self.interior, text=f'Status: {status}', bg='light blue', font='Times 18', pady=10, fg='#0260fd')
+        self.interior.name_label.grid(row=2, column=0, columnspan=2)
+        self.interior.price_label.grid(row=3, column=0, columnspan=2)
+        self.interior.status_label.grid(row=4, column=0, columnspan=2)
         if status in ['unpaid', 'credit']:
-            self.set_paid_btn = tk.Button(self, text="Mark as paid", font='Times 15',
-                                          command=lambda: self.mark_as_paid(_id, engine))
-            self.set_paid_btn.grid(row=5, column=0, columnspan=2, padx=10)
+            self.interior.set_paid_btn = tk.Button(self.interior, text="Mark as paid", font='Times 15',
+                                                   command=lambda: self.mark_as_paid(_id, engine))
+            self.interior.set_paid_btn.grid(row=5, column=0, columnspan=2, padx=10)
         print(name, price, status)
 
     def mark_as_paid(self, _id, engine):
         auth_mark_as_paid(_id, engine)
-        self.get_order_info(_id, engine)
+        self.interior.get_order_info(_id, engine)
