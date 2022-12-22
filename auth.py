@@ -52,10 +52,20 @@ def registrate_user(username, password, role, engine):
     # conn.execute(text('SELECT create_user(:param1, :param2, :param3);').bindparams(
     #              param1=username, param2=f'\'{password}\'', param3=role))
     conn = engine.connect()
-    conn.execute(f'CREATE USER {username} LOGIN PASSWORD \'{password}\';'
-                 f'GRANT {role} TO {username};'
-                 f'ALTER ROLE {username} INHERIT;'
-                 f'INSERT INTO users (username, role) VALUES (\'{username}\', \'{role}\');')
+    try:
+        query_create_user = f'''
+                                BEGIN;
+                                call create_user(\'{username}\', \'\'\'{username}\'\'\', \'\'\'{password}\'\'\', \'{role}\', \'\'\'{role}\'\'\');
+                                COMMIT;
+                            '''
+        # conn.execute(f'CREATE USER {username} LOGIN PASSWORD \'{password}\';'
+        #              f'GRANT {role} TO {username};'
+        #              f'ALTER ROLE {username} INHERIT;'
+        #              f'INSERT INTO users (username, role) VALUES (\'{username}\', \'{role}\');')
+        conn.execute(query_create_user)
+        messagebox.showinfo(title='Success', message='User created')
+    except Exception:
+        messagebox.showerror(title='Error', message='User already exists')
     conn.close()
 
 
@@ -113,6 +123,13 @@ def get_price(item_name, engine):
     return res[0][0]
 
 
+def get_all_purchases(engine):
+    conn = engine.connect()
+    res = tuple(conn.execute('SELECT get_all_purchases();'))
+    conn.close()
+    return res
+
+
 def get_weight(item_name, engine):
     conn = engine.connect()
     res = tuple(conn.execute(text('SELECT get_weight(:item_name)'), item_name=f'\'{item_name}\''))
@@ -132,7 +149,13 @@ def add_to_storage(item_name, quantity, engine):
 
 def add_item_to_order(purchase_id, item_name, quantity, engine):
     conn = engine.connect()
-    conn.execute(f'INSERT INTO purchase_item(purchase_id, item_name, quantity) VALUES({purchase_id}, \'{item_name}\', {quantity})')
+    query_add_item_to_order = f'''
+                        BEGIN;
+                        call add_item_to_order({purchase_id}, \'\'\'{item_name}\'\'\', {quantity});
+                        COMMIT;
+                    '''
+    conn.execute(query_add_item_to_order)
+    # conn.execute(f'INSERT INTO purchase_item(purchase_id, item_name, quantity) VALUES({purchase_id}, \'{item_name}\', {quantity})')
     conn.close()
 
 
@@ -164,10 +187,12 @@ def create_order(buyer_name, status, items: str, engine):
     price = ceil(float(price) + 5 * tanh(weight/20 - 1) + 5)
 
     conn = engine.connect()
-    # conn.execute(text('SELECT create_order(:buyer_name, :weight, :price, :status);'),
-    #              buyer_name=f'\'buyer_name\'', weight=float(weight), price=price, status=f'\'status\'')
-    conn.execute(f'INSERT INTO purchase(buyer_name, weight, price, status) VALUES(\'{buyer_name}\', {weight}, {price} , \'{status}\');')
-
+    query_create_new_order = f'''
+                    BEGIN;
+                    call create_order(\'\'\'{buyer_name}\'\'\', {weight}, {price}, \'\'\'{status}\'\'\');
+                    COMMIT;
+                '''
+    conn.execute(query_create_new_order)
     conn.close()
 
 
@@ -208,15 +233,25 @@ def get_order_items(_id: int, engine):
 
 def mark_as_paid(_id: int, engine):
     conn = engine.connect()
-    conn.execute(f'UPDATE purchase SET status=\'paid\' WHERE id={_id}')
+    query_mark_as_paid = f'''
+                        BEGIN;
+                        call mark_as_paid({_id}, \'\'\'paid\'\'\');
+                        COMMIT;
+                    '''
+    conn.execute(query_mark_as_paid)
+    # conn.execute(f'UPDATE purchase SET status=\'paid\' WHERE id={_id}')
     conn.close()
 
 
 def register_item(item_name, weight, price, engine):
     conn = engine.connect()
-    # conn.execute(text('SELECT create_order(:buyer_name, :weight, :price, :status);'),
-    #              buyer_name=f'\'buyer_name\'', weight=float(weight), price=price, status=f'\'status\'')
-    conn.execute(f'INSERT INTO item(name, weight, quantity, price) VALUES(\'{item_name}\', {weight}, 0, {price});')
+    query_register_item = f'''
+                        BEGIN;
+                        call register_item(\'\'\'{item_name}\'\'\', {weight}, {price});
+                        COMMIT;
+                    '''
+    conn.execute(query_register_item)
+    # conn.execute(f'INSERT INTO item(name, weight, quantity, price) VALUES(\'{item_name}\', {weight}, 0, {price});')
     conn.close()
 
 

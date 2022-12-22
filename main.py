@@ -12,19 +12,14 @@ if __name__ == "__main__":
     app = App()
     app.mainloop()
 
-
-    # engine = create_engine(f"postgresql+psycopg2://qeq:111@localhost/user_db")
-    # print(search_purchase_by_name('alex', engine))
-
+    # engine = create_engine(f"postgresql+psycopg2://postgres:1989@localhost/user_db")
     # conn = engine.connect()
-    # res = tuple(conn.execute('SELECT get_last_order_id();'))[0][0]
-    # conn.close()
-    # print(res)
-
-
-    # print(get_weight('keyboard', engine))
-    # conn = engine.connect()
-    # conn.execute('INSERT INTO purchase(buyer_name, weight, price, status) VALUES(\'aboba\', 22, 43, \'paid\')')
+    # query_create_new_order = f'''
+    #             BEGIN;
+    #             call create_order(\'\'\'ivan\'\'\', 10, 50, \'\'\'paid\'\'\');
+    #             COMMIT;
+    #         '''
+    # conn.execute(query_create_new_order)
     # conn.close()
 
 # TODO:

@@ -1,7 +1,7 @@
 import tkinter as tk
 from auth import login, create_new_db, drop_db, registrate_user, check_role, is_enough_items_for_order, create_order, is_in_storage, register_item, add_to_storage
 from auth import search_purchase_by_name, search_purchase_by_status, search_purchase_by_id, get_order_items
-from auth import mark_as_paid as auth_mark_as_paid, get_transaction_by_name, get_all_transactions
+from auth import mark_as_paid as auth_mark_as_paid, get_transaction_by_name, get_all_transactions, get_all_purchases
 from tkinter import messagebox, ttk
 from utils import VerticalScrolledFrame
 
@@ -273,6 +273,7 @@ class ManageItems(tk.Frame):
                 messagebox.showerror(title='Error', message='Enter valid positive float for price')
             else:
                 register_item(item_name=itemname_input.get(), weight=weight_input.get(), price=price_input.get(), engine=engine)
+                messagebox.showinfo(title='Success', message='Item was registred')
 
         itemname_label.grid(row=2, column=0)
         itemname_input.grid(row=2, column=1, pady=10, padx=10)
@@ -288,7 +289,7 @@ class ManageItems(tk.Frame):
 
         row_displacement = 10
 
-        add_item_label_2 = tk.Label(self, text="Register New Item", bg='light blue', font='Times 20', pady=30)
+        add_item_label_2 = tk.Label(self, text="Add item", bg='light blue', font='Times 20', pady=30)
         add_item_label_2.grid(row=row_displacement+1,column=0, columnspan=2)
 
         itemname_label_2 = tk.Label(self, bg='light blue', font='Times 15', text='Item\'s name', pady=10, padx=10)
@@ -303,6 +304,7 @@ class ManageItems(tk.Frame):
                 messagebox.showerror(title='Error', message='Enter valid positive amount')
             else:
                 add_to_storage(item_name=itemname_input_2.get(), quantity=int(quant_input.get()), engine=engine)
+                messagebox.showinfo(title='Success', message='Items were added')
 
         itemname_label_2.grid(row=row_displacement+2, column=0)
         itemname_input_2.grid(row=row_displacement+2, column=1, pady=10, padx=10)
@@ -355,6 +357,7 @@ class ManageOrders(VerticalScrolledFrame):
                 messagebox.showerror(title='Error', message='Enter 1 item at least')
             else:
                 create_order(buyer_name=buyername_input.get(), items=items_input.get('1.0', 'end'), status=status_var.get(), engine=engine)
+                messagebox.showinfo(title='Success', message='Order was created')
 
         buyername_label.grid(row=2, column=0)
         buyername_input.grid(row=2, column=1, pady=10, padx=10)
@@ -413,7 +416,12 @@ class ManageOrders(VerticalScrolledFrame):
 
         search_btn = tk.Button(self.interior, text="Search", font='Times 15',
                                command=lambda: self.search_by_filter(drop_var.get(), val_input.get(), purchases_table, self.engine))
-        search_btn.grid(row=11, column=0, columnspan=2, pady=20)
+        search_btn.grid(row=11, column=0,  pady=20)
+
+        search_all_btn = tk.Button(self.interior, text="Check all orders", font='Times 15',
+                               command=lambda: self.search_by_filter('all', None, purchases_table,
+                                                                     self.engine))
+        search_all_btn.grid(row=11, column=1, pady=20)
 
         button_back = tk.Button(self.interior, text="Back", font='Times 15',
                                 command=self.goback)
@@ -425,7 +433,9 @@ class ManageOrders(VerticalScrolledFrame):
 
     def search_by_filter(self, _filter, val, table, engine):
         res = None
-        if _filter == 'id':
+        if _filter == 'all':
+            res = get_all_purchases(engine)
+        elif _filter == 'id':
             res = search_purchase_by_id(val, engine)
         elif _filter == 'status':
             res = search_purchase_by_status(val, engine)
@@ -519,6 +529,7 @@ class AccountantPage(VerticalScrolledFrame):
         elif _filter == 'name':
             res = get_transaction_by_name(val, engine)
 
+
         table.delete(*table.get_children())
         for i, s in enumerate(res):
             row = s[0].strip('(').strip(')').split(',')
@@ -527,8 +538,6 @@ class AccountantPage(VerticalScrolledFrame):
         table.grid(row=10, column=0, columnspan=2)
         # ------------------------------------ ACCOUNTANT SEARCH ---------------------------------------
 
-
-
     def get_order_info(self, _id: int, engine):
         if self.interior.name_label is not None:
             self.interior.name_label.destroy()
@@ -536,21 +545,23 @@ class AccountantPage(VerticalScrolledFrame):
             self.interior.status_label.destroy()
         if self.interior.set_paid_btn is not None:
             self.interior.set_paid_btn.destroy()
-        res = search_purchase_by_id(_id, engine)
-        res = res[0][0].strip('(').strip(')').split(',')
-        name, price, status = [res[1], res[3], res[4]]
-        self.interior.name_label = tk.Label(self.interior, text=f'Buyer: {name}', bg='light blue', font='Times 18', pady=10, fg='#0260fd')
-        self.interior.price_label = tk.Label(self.interior, text=f'Price: {price}', bg='light blue', font='Times 18', pady=10, fg='#0260fd')
-        self.interior.status_label = tk.Label(self.interior, text=f'Status: {status}', bg='light blue', font='Times 18', pady=10, fg='#0260fd')
-        self.interior.name_label.grid(row=2, column=0, columnspan=2)
-        self.interior.price_label.grid(row=3, column=0, columnspan=2)
-        self.interior.status_label.grid(row=4, column=0, columnspan=2)
-        if status in ['unpaid', 'credit']:
-            self.interior.set_paid_btn = tk.Button(self.interior, text="Mark as paid", font='Times 15',
-                                                   command=lambda: self.mark_as_paid(_id, engine))
-            self.interior.set_paid_btn.grid(row=5, column=0, columnspan=2, padx=10)
-        print(name, price, status)
+        try:
+            res = search_purchase_by_id(_id, engine)
+            res = res[0][0].strip('(').strip(')').split(',')
+            name, price, status = [res[1], res[3], res[4]]
+            self.interior.name_label = tk.Label(self.interior, text=f'Buyer: {name}', bg='light blue', font='Times 18', pady=10, fg='#0260fd')
+            self.interior.price_label = tk.Label(self.interior, text=f'Price: {price}', bg='light blue', font='Times 18', pady=10, fg='#0260fd')
+            self.interior.status_label = tk.Label(self.interior, text=f'Status: {status}', bg='light blue', font='Times 18', pady=10, fg='#0260fd')
+            self.interior.name_label.grid(row=2, column=0, columnspan=2)
+            self.interior.price_label.grid(row=3, column=0, columnspan=2)
+            self.interior.status_label.grid(row=4, column=0, columnspan=2)
+            if status in ['unpaid', 'credit']:
+                self.interior.set_paid_btn = tk.Button(self.interior, text="Mark as paid", font='Times 15',
+                                                       command=lambda: self.mark_as_paid(_id, engine))
+                self.interior.set_paid_btn.grid(row=5, column=0, columnspan=2, padx=10)
+        except Exception:
+            messagebox.showerror(title='Error', message='No order with such id')
 
     def mark_as_paid(self, _id, engine):
         auth_mark_as_paid(_id, engine)
-        self.interior.get_order_info(_id, engine)
+        self.get_order_info(_id, engine)
