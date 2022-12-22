@@ -75,12 +75,15 @@ ELSE
 --          'EXECUTE ''GRANT INSERT ON users TO admin;''');
 
 	PERFORM dblink_exec(
-		'CREATE OR REPLACE FUNCTION create_user(username text, password text, role text)
-  			RETURNS void AS
+		'CREATE PROCEDURE create_user(username text, q_username text, password text, role text, q_role text)
+  		 AS
 		$func$
 		BEGIN
 
-		EXECUTE ''CREATE USER '' || username || '' WITH ROLE '' || role || '' LOGIN PASSWORD '' || password;
+		EXECUTE ''CREATE USER '' || username || '' LOGIN PASSWORD '' || password;
+		EXECUTE ''GRANT '' || role || '' TO '' || username;
+		EXECUTE ''ALTER ROLE '' || username || '' INHERIT'';
+		EXECUTE ''INSERT INTO users (username, role) VALUES ('' || q_username || '', '' || q_role || '')'';
 
 		END
 		$func$ LANGUAGE plpgsql;'
@@ -126,12 +129,63 @@ ELSE
 	);
 
 	PERFORM dblink_exec(
-		'CREATE OR REPLACE FUNCTION create_order(my_buyer_name text, my_weight numeric(10), my_price numeric(10), status text)
-  			RETURNS void AS
+		'CREATE OR REPLACE FUNCTION get_all_users()
+  			RETURNS TABLE(username text)
+		AS
+		$func$
+		BEGIN
+
+			RETURN QUERY
+			EXECUTE ''SELECT username FROM users'';
+
+		END;
+		$func$ LANGUAGE plpgsql;'
+	);
+
+	PERFORM dblink_exec(
+		'CREATE PROCEDURE create_order(my_buyer_name text, my_weight numeric(10), my_price numeric(10), status text)
+  			AS
 		$func$
 		BEGIN
 
 			EXECUTE ''INSERT INTO purchase(buyer_name, weight, price, status) VALUES('' || my_buyer_name || '', '' || my_weight || '', '' || my_price || '', '' || status || '')'';
+
+		END;
+		$func$ LANGUAGE plpgsql;'
+	);
+
+
+	PERFORM dblink_exec(
+		'CREATE PROCEDURE register_item(item_name text, weight numeric(10), price numeric(10))
+  			AS
+		$func$
+		BEGIN
+
+			EXECUTE ''INSERT INTO item(name, weight, quantity, price) VALUES('' || item_name ||'', '' || weight || '', 0, '' || price || '')'';
+
+		END;
+		$func$ LANGUAGE plpgsql;'
+	);
+
+	PERFORM dblink_exec(
+		'CREATE PROCEDURE mark_as_paid(_id integer, status text)
+  			AS
+		$func$
+		BEGIN
+
+			EXECUTE ''UPDATE purchase SET status='' || status || '' WHERE id='' || _id;
+
+		END;
+		$func$ LANGUAGE plpgsql;'
+	);
+
+	PERFORM dblink_exec(
+		'CREATE PROCEDURE add_item_to_order(purchase_id integer, item_name text, quantity integer)
+  			AS
+		$func$
+		BEGIN
+
+			EXECUTE ''INSERT INTO purchase_item(purchase_id, item_name, quantity) VALUES('' || purchase_id || '', '' || item_name || '', '' || quantity || '')'';
 
 		END;
 		$func$ LANGUAGE plpgsql;'
@@ -163,17 +217,6 @@ ELSE
 		$func$ LANGUAGE plpgsql;'
 	);
 
-	PERFORM dblink_exec(
-		'CREATE OR REPLACE FUNCTION add_item_to_order(order_id integer, item_name text, my_quantity integer)
-  			RETURNS void AS
-		$func$
-		BEGIN
-
-			EXECUTE ''INSERT INTO purchase_item(purchase_id, item_name, quantity) VALUES('' || order_id || '', '' || item_name || '', '' || my_quantity || '')'';
-
-		END;
-		$func$ LANGUAGE plpgsql;'
-	);
 
 	PERFORM dblink_exec(
 		'CREATE OR REPLACE FUNCTION search_purchase_by_name(name text)
@@ -249,6 +292,38 @@ ELSE
 	);
 
 	PERFORM dblink_exec(
+		'CREATE OR REPLACE FUNCTION search_transaction_by_name(my_name text)
+  		 RETURNS TABLE(id integer,
+					   cost numeric(10),
+					   counteragent_name text)
+  		 AS
+		 $func$
+		 BEGIN
+
+		    RETURN QUERY
+		 	SELECT p.id, p.cost, p.counteragent_name FROM transaction AS p WHERE p.counteragent_name=my_name;
+
+		 END;
+		 $func$ LANGUAGE plpgsql;'
+	);
+
+	PERFORM dblink_exec(
+		'CREATE OR REPLACE FUNCTION get_all_transactions()
+  		 RETURNS TABLE(id integer,
+					   cost numeric(10),
+					   counteragent_name text)
+  		 AS
+		 $func$
+		 BEGIN
+
+		    RETURN QUERY
+		 	SELECT * FROM transaction;
+
+		 END;
+		 $func$ LANGUAGE plpgsql;'
+	);
+
+	PERFORM dblink_exec(
 		'CREATE OR REPLACE FUNCTION search_purchase_by_status(my_status text)
   		 RETURNS TABLE(id integer,
 						buyer_name text,
@@ -261,6 +336,24 @@ ELSE
 
 		    RETURN QUERY
 		 	SELECT p.id, p.buyer_name, p.weight, p.price, p.status FROM purchase AS p WHERE p.status=my_status;
+
+		 END;
+		 $func$ LANGUAGE plpgsql;'
+	);
+
+	PERFORM dblink_exec(
+		'CREATE OR REPLACE FUNCTION get_all_purchases()
+  		 RETURNS TABLE(id integer,
+						buyer_name text,
+						weight numeric(10),
+						price numeric(10),
+						status text)
+  		 AS
+		 $func$
+		 BEGIN
+
+		    RETURN QUERY
+		 	SELECT * FROM purchase;
 
 		 END;
 		 $func$ LANGUAGE plpgsql;'

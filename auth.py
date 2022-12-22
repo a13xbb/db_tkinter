@@ -31,7 +31,7 @@ def drop_db(db_name, engine, username, password):
         надо переписать, используя хранимую процедуру'''
         #TODO: сделать в бд хранимую функцию get_all_users() и drop_role(role_name), возможно с триггером
         conn = create_engine(f'postgresql://{username}:{password}@localhost/user_db').connect()
-        res = conn.execute('SELECT username FROM users')
+        res = conn.execute('SELECT get_all_users()')
         users = []
         for row in res:
             users.append(row[0])
