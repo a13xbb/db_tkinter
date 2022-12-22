@@ -1,5 +1,5 @@
 import tkinter as tk
-from auth import login, create_new_db, drop_db, registrate_user, check_role, is_enough_items_for_order, create_order, is_in_storage, register_item, add_to_storage
+from auth import login, create_new_db, drop_db, registrate_user, check_role, is_enough_items_for_order, create_order, is_in_storage, register_item, add_to_storage, del_item, flush_table
 from auth import search_purchase_by_name, search_purchase_by_status, search_purchase_by_id, get_order_items
 from auth import mark_as_paid as auth_mark_as_paid, get_transaction_by_name, get_all_transactions, get_all_purchases
 from tkinter import messagebox, ttk
@@ -110,11 +110,19 @@ class SuperUserPage(tk.Frame):
         button_delete = tk.Button(self, text="Delete user database", font=25, bg='#2bbcd4',
                                   command=lambda: drop_db('user_db', self.engine, self.username, self.password))
         button_delete.pack(pady=10)
+        
+        table_var = tk.StringVar(self.controller)
+        table_var.set('*')
+        table_dropdown = tk.OptionMenu(self, table_var, *['users', 'item', 'purchase_item', 'transaction'])
+        table_dropdown.config(font='Times 25')
+
+        button_flush = tk.Button(self, text="Flush user database", font=25, bg='#2bbcd4',
+                                  command=lambda: flush_table(table_var.get(), engine))
+        button_flush.pack(pady=10)
+        
         button_back = tk.Button(self, text="Back", font=25,
                                 command=controller.show_start_page)
         button_back.pack(pady=10)
-
-
 class SignIn(tk.Frame):
 
     def __init__(self, parent, controller):
@@ -317,6 +325,29 @@ class ManageItems(tk.Frame):
         button_back = tk.Button(self, text="Back", font='Times 15',
                                 command=self.goback)
         button_back.place(anchor='nw', y=40)
+        
+###
+
+        col_displacement = 5
+
+        del_item_label = tk.Label(self, text="Add items to storage", bg='light blue', font='Times 20', pady=30)
+        del_item_label.grid(row=1,column=col_displacement+0, columnspan=2)
+
+        itemname_label_3 = tk.Label(self, bg='light blue', font='Times 15', text='Item\'s name to delete', pady=10, padx=10)
+        itemname_input_3 = tk.Entry(self, font='Times 15')
+        itemname_label_3.grid(row=2, column=col_displacement+0)
+        itemname_input_3.grid(row=2, column=col_displacement+1, pady=10, padx=10)
+        
+        def delete_item():
+            if not is_in_storage(itemname_input_3.get(), 0, self.engine):
+                messagebox.showerror(title='Error', message='Item name unknown')
+            else:
+                del_item(item_name=itemname_input_3.get(), engine=engine)
+
+        del_item_btn = tk.Button(self, text="Delete item from storage", font='Times 15',
+                                   command=delete_item)
+        del_item_btn.grid(row=4, column=col_displacement+0, columnspan=2, pady=20)
+        
 ###
     def goback(self):
 
