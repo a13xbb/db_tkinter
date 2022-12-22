@@ -226,14 +226,24 @@ class MerchandiserPage(tk.Frame):
                                         command=lambda: self.redirect_ord())
         add_order_goto_button.grid(row=4, column=0, columnspan=2, pady=10)
 
+        itm_goto_button = tk.Button(self, text="Manage Items", font='Times 15',
+                                        command=lambda: self.redirect_itm())
+        itm_goto_button.grid(row=5, column=0, columnspan=2)
+
         button_back = tk.Button(self, text="Back", font='Times 15',
                                 command=controller.show_start_page)
-        button_back.grid(row=5, column=0, columnspan=2, pady=10)
+        button_back.grid(row=7, column=0, columnspan=2, pady=10)
 
     def redirect_ord(self):
         disp_page = ManageOrders(parent=self, engine=self.engine, controller=self.controller)
         disp_page.place(relwidth=1, relheight=1)
         disp_page.tkraise()
+
+    def redirect_itm(self):
+        disp_page = ManageItems(parent=self, engine=self.engine, controller=self.controller)
+        disp_page.place(relwidth=1, relheight=1)
+        disp_page.tkraise()
+
 class ManageItems(tk.Frame):
     def __init__(self, parent: MerchandiserPage, engine, controller: App):
         tk.Frame.__init__(self, parent, bg='light blue')
@@ -282,7 +292,7 @@ class ManageItems(tk.Frame):
 
         itemname_label_2 = tk.Label(self, bg='light blue', font='Times 15', text='Item\'s name', pady=10, padx=10)
         itemname_input_2 = tk.Entry(self, font='Times 15')
-        quant_label = tk.Label(self, bg='light blue', font='Times 15', text='Weight of this item', pady=10, padx=10)
+        quant_label = tk.Label(self, bg='light blue', font='Times 15', text='Amount of addition', pady=10, padx=10)
         quant_input = tk.Entry(self, font='Times 15')
 
         def add_item():
@@ -291,7 +301,7 @@ class ManageItems(tk.Frame):
             elif price_input.get() == '' and int(price_input.get()) > 0:
                 messagebox.showerror(title='Error', message='Enter valid positive amount')
             else:
-                take_from_storage(item_name=itemname_input.get(), quantity=-quant_input.get(), engine=engine)
+                take_from_storage(item_name=itemname_input.get(), quantity=-int(quant_input.get()), engine=engine)
 
         itemname_label_2.grid(row=row_displacement+2, column=0)
         itemname_input_2.grid(row=row_displacement+2, column=1, pady=10, padx=10)

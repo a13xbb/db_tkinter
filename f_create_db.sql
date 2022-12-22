@@ -10,10 +10,10 @@ ELSE
    -- принцип работы dblink_exec: подключается к указанной бд(в примере - текущая), и выполняет запрос,
    -- переданный вторым аргументом.
    -- для доп.информации можно добавить hostaddr=127.0.0.1 port=5432 dbname=mydb user=postgres password=mypasswd
-   	PERFORM dblink_exec('dbname=' || current_database() || ' user=postgres' || ' password=1989'   -- current db
+   	PERFORM dblink_exec('dbname=' || current_database() || ' user=postgres' || ' password=zhvzhvzhv'   -- current db
                      , 'CREATE DATABASE ' || quote_ident(dbname));
 
-	PERFORM dblink_connect('dbname=user_db user=postgres password=1989');
+	PERFORM dblink_connect('dbname=user_db user=postgres password=zhvzhvzhv');
 
 	PERFORM dblink_exec(
          'CREATE TABLE item (
